@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "wxt",
     "build": "node scripts/check-version-consistency.js && wxt build",
+    "build:firefox": "node scripts/check-version-consistency.js && wxt build -b firefox",
+    "dev:firefox": "wxt -b firefox",
     "build:store": "node scripts/check-version-consistency.js && wxt build && node scripts/build-store-zip.mjs",
     "build:watch": "wxt build --watch",
     "update-preset": "node --loader ts-node/esm scripts/update-preset-domains.ts",
@@ -47,6 +49,7 @@
     "@tailwindcss/vite": "^4.2.2",
     "@types/chrome": "^0.1.36",
     "@types/node": "^25.2.3",
+    "@types/webextension-polyfill": "^0.12.5",
     "@vitest/coverage-v8": "^4.1.4",
     "adm-zip": "^0.5.16",
     "css-tree": "^3.2.1",

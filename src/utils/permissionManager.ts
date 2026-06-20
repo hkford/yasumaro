@@ -1,6 +1,6 @@
 /**
  * permissionManager.ts
- * Permission Manager - chrome.permissions API ラッパー + 拒否訪問カウント管理（P0）
+ * Permission Manager - browser.permissions API ラッパー + 拒否訪問カウント管理（P0）
  * host_permissionsチェックとoptional_permissions要求、拒否ドメイン管理
  */
 
@@ -22,7 +22,7 @@ export interface DeniedDomainEntry {
 }
 
 /**
- * 拒否ドメインの内部データ構造（chrome.storage.localに保存）
+ * 拒否ドメインの内部データ構造（browser.storage.localに保存）
  */
 export interface DeniedDomainData {
   count: number;           // 拒否回数
@@ -39,7 +39,7 @@ export class PermissionManager {
    * 共通: denied_domains を取得するヘルパーメソッド
    */
   private async getDeniedDomains(): Promise<Record<string, DeniedDomainData>> {
-    const data = await chrome.storage.local.get({ [StorageKeys.DENIED_DOMAINS]: {} });
+    const data = await browser.storage.local.get({ [StorageKeys.DENIED_DOMAINS]: {} });
     return (data[StorageKeys.DENIED_DOMAINS] as Record<string, DeniedDomainData>) || {};
   }
 
@@ -47,7 +47,7 @@ export class PermissionManager {
    * 共通: denied_domains を保存するヘルパーメソッド
    */
   private async saveDeniedDomains(deniedDomains: Record<string, DeniedDomainData>): Promise<void> {
-    await chrome.storage.local.set({ [StorageKeys.DENIED_DOMAINS]: deniedDomains });
+    await browser.storage.local.set({ [StorageKeys.DENIED_DOMAINS]: deniedDomains });
   }
 
   /**
@@ -59,10 +59,9 @@ export class PermissionManager {
   ): Promise<void> {
     await withOptimisticLock(
       StorageKeys.DENIED_DOMAINS,
-      async () => {
-        const deniedDomains = await this.getDeniedDomains();
-        const updated = updater(deniedDomains);
-        await this.saveDeniedDomains(updated);
+      async (currentValue: Record<string, DeniedDomainData>) => {
+        const currentDomains = currentValue || await this.getDeniedDomains();
+        return updater(currentDomains);
       }
     );
   }
@@ -76,7 +75,7 @@ export class PermissionManager {
     try {
       const origin = this.urlToOrigin(url);
       if (!origin) return false; // nullの場合は許可されていないとみなす
-      return await chrome.permissions.contains({ origins: [origin] });
+      return await browser.permissions.contains({ origins: [origin] });
     } catch (error) {
       logWarn('PermissionManager', { error: errorMessage(error), url }, undefined, 'Failed to check host permission');
       return false;
@@ -92,7 +91,7 @@ export class PermissionManager {
     try {
       const origin = this.urlToOrigin(url);
       if (!origin) return false; // nullの場合は許可を要求しない
-      return await chrome.permissions.request({ origins: [origin] });
+      return await browser.permissions.request({ origins: [origin] });
     } catch (error) {
       logWarn('PermissionManager', { error: errorMessage(error), url }, undefined, 'Failed to request permission');
       return false;
@@ -226,44 +225,44 @@ export class PermissionManager {
    * @param dismissalDays - 再表示抑制日数（デフォルト: 14日）
    * @returns 閾値を超える拒否ドメインリスト
    */
-   async getFrequentDeniedDomains(
-     threshold?: number,
-     dismissalDays: number = 14
-   ): Promise<DeniedDomainEntry[]> {
-     try {
-       const deniedDomains = await this.getDeniedDomains();
-       const thresholdData = await chrome.storage.local.get({ [StorageKeys.PERMISSION_NOTIFY_THRESHOLD]: 3 });
-       // Validate threshold is within expected range (1-50)
-       const notifyThreshold = Math.max(1, Math.min(50, threshold ?? (thresholdData[StorageKeys.PERMISSION_NOTIFY_THRESHOLD] as number)));
+  async getFrequentDeniedDomains(
+    threshold?: number,
+    dismissalDays: number = 14
+  ): Promise<DeniedDomainEntry[]> {
+    try {
+      const deniedDomains = await this.getDeniedDomains();
+      const thresholdData = await browser.storage.local.get({ [StorageKeys.PERMISSION_NOTIFY_THRESHOLD]: 3 });
+      // Validate threshold is within expected range (1-50)
+      const notifyThreshold = Math.max(1, Math.min(50, threshold ?? (thresholdData[StorageKeys.PERMISSION_NOTIFY_THRESHOLD] as number)));
 
-       const dismissalThreshold = Date.now() - (dismissalDays * 24 * 60 * 60 * 1000);
-       const entries: DeniedDomainEntry[] = [];
+      const dismissalThreshold = Date.now() - (dismissalDays * 24 * 60 * 60 * 1000);
+      const entries: DeniedDomainEntry[] = [];
 
-       for (const [domain, entry] of Object.entries(deniedDomains)) {
-         // 閾値を超えたドメインのみ（count > threshold）
-         if (entry.count <= notifyThreshold) {
-           continue;
-         }
+      for (const [domain, entry] of Object.entries(deniedDomains)) {
+        // 閾値を超えたドメインのみ（count > threshold）
+        if (entry.count <= notifyThreshold) {
+          continue;
+        }
 
-         // 14日再表示抑制チェック
-         if (entry.lastDismissed) {
-           const dismissalTime = new Date(entry.lastDismissed).getTime();
-           if (dismissalTime > dismissalThreshold) {
-             continue; // 14日経過していない → 除外
-           }
-         }
+        // 14日再表示抑制チェック
+        if (entry.lastDismissed) {
+          const dismissalTime = new Date(entry.lastDismissed).getTime();
+          if (dismissalTime > dismissalThreshold) {
+            continue; // 14日経過していない → 除外
+          }
+        }
 
-         entries.push({ domain, count: entry.count });
-       }
+        entries.push({ domain, count: entry.count });
+      }
 
-       // 訪問数の降順でソート
-       entries.sort((a, b) => b.count - a.count);
-       return entries;
-     } catch (error) {
-       logWarn('PermissionManager', { error: errorMessage(error) }, undefined, 'Failed to get frequent denied domains');
-       return [];
-     }
-   }
+      // 訪問数の降順でソート
+      entries.sort((a, b) => b.count - a.count);
+      return entries;
+    } catch (error) {
+      logWarn('PermissionManager', { error: errorMessage(error) }, undefined, 'Failed to get frequent denied domains');
+      return [];
+    }
+  }
 
   /**
    * 許可されたドメインをdenied_domainsから削除
@@ -283,18 +282,18 @@ export class PermissionManager {
     }
   }
 
-   /**
-    * URL からオリジン形式に変換するユーティリティ
-    * "https://example.com/path" → "*://example.com/*"
-    * @param url - 変換対象のURL
-    * @returns オリジン形式（chrome.permissions API用）
-    */
+  /**
+   * URL からオリジン形式に変換するユーティリティ
+   * "https://example.com/path" → "*://example.com/*"
+   * @param url - 変換対象のURL
+   * @returns オリジン形式（browser.permissions API用）
+   */
   /**
    * <all_urls> が optional_host_permissions として付与されているか確認
    */
   async isAllUrlsPermitted(): Promise<boolean> {
     try {
-      return await chrome.permissions.contains({ origins: ['<all_urls>'] });
+      return await browser.permissions.contains({ origins: ['<all_urls>'] });
     } catch (error) {
       logWarn('PermissionManager', { error: errorMessage(error) }, undefined, 'Failed to check <all_urls> permission');
       return false;
@@ -307,7 +306,7 @@ export class PermissionManager {
    */
   async requestAllUrls(): Promise<boolean> {
     try {
-      return await chrome.permissions.request({ origins: ['<all_urls>'] });
+      return await browser.permissions.request({ origins: ['<all_urls>'] });
     } catch (error) {
       logWarn('PermissionManager', { error: errorMessage(error) }, undefined, 'Failed to request <all_urls> permission');
       return false;

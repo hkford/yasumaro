@@ -23,7 +23,7 @@ const { mockAlarmsCreate, mockAlarmsClear, storageMock } = vi.hoisted(() => {
         YASUMARO_MIGRATION_PROGRESS: 'yasumaro_migration_progress',
     };
     return {
-        mockAlarmsCreate: vi.fn<Promise<void>, [string, chrome.alarms.AlarmCreateInfo]>((_name, _info) => Promise.resolve()),
+        mockAlarmsCreate: vi.fn<Promise<void>, [string, browser.alarms.AlarmCreateInfo]>((_name, _info) => Promise.resolve()),
         mockAlarmsClear: vi.fn<Promise<boolean>, [string]>(() => Promise.resolve(true)),
         storageMock: { StorageKeys: storageKeys },
     };
@@ -33,10 +33,10 @@ const { mockAddListener, mockQuery, mockGet, mockCreate, mockRemove, mockClear,
         mockSetBadgeText, mockSetBadgeBackgroundColor, mockExecuteScript } = vi.hoisted(() => {
     return {
         mockAddListener: vi.fn(),
-        mockQuery: vi.fn<Promise<chrome.tabs.Tab[]>, [chrome.tabs.QueryInfo]>(() => Promise.resolve([])),
-        mockGet: vi.fn<Promise<chrome.tabs.Tab>, [number]>((tabId) => Promise.resolve({ id: tabId, url: 'https://example.com' } as chrome.tabs.Tab)),
-        mockCreate: vi.fn<Promise<chrome.tabs.Tab>, [chrome.tabs.CreateProperties]>((options) =>
-            Promise.resolve({ id: 1, url: options.url, active: false } as chrome.tabs.Tab)
+        mockQuery: vi.fn<Promise<browser.tabs.Tab[]>, [browser.tabs.QueryInfo]>(() => Promise.resolve([])),
+        mockGet: vi.fn<Promise<browser.tabs.Tab>, [number]>((tabId) => Promise.resolve({ id: tabId, url: 'https://example.com' } as browser.tabs.Tab)),
+        mockCreate: vi.fn<Promise<browser.tabs.Tab>, [browser.tabs.CreateProperties]>((options) =>
+            Promise.resolve({ id: 1, url: options.url, active: false } as browser.tabs.Tab)
         ),
         mockRemove: vi.fn<Promise<void>, [number]>(() => Promise.resolve()),
         mockClear: vi.fn<Promise<void>, [string]>(() => Promise.resolve()),
@@ -379,7 +379,7 @@ describe('service-worker handlers', () => {
                 type: 'CONTENT_CLEANSING_EXECUTED',
                 payload: { hardStripRemoved: 2, keywordStripRemoved: 3, totalRemoved: 5 }
             };
-            const sender = { tab: { id: 1, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 1, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             handler(message, sender, sendResponse);
             await new Promise(resolve => setTimeout(resolve, 50));
@@ -392,7 +392,7 @@ describe('service-worker handlers', () => {
             const handler = serviceWorker.createMessageHandler();
             const sendResponse = vi.fn();
             const message: CheckDomainMessage = { type: 'CHECK_DOMAIN' };
-            const sender = { tab: { id: 1, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 1, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             handler(message, sender, sendResponse);
             await new Promise(resolve => setTimeout(resolve, 50));
@@ -709,7 +709,7 @@ describe('service-worker handlers', () => {
             // First trigger auto-save badge by handling a valid visit
             const sendResponse = vi.fn();
             const message = { type: 'VALID_VISIT', payload: { content: 'test' } } as ValidVisitMessage;
-            const sender = { tab: { id: 1, url: 'https://example.com', title: 'Example' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 1, url: 'https://example.com', title: 'Example' } } as browser.runtime.MessageSender;
             await serviceWorker.handleValidVisit(message, sender, sendResponse);
 
             mockSetBadgeText.mockClear();
@@ -721,7 +721,7 @@ describe('service-worker handlers', () => {
         });
 
         it('should clear badge when tab has no URL', async () => {
-            mockGet.mockResolvedValueOnce({ id: 2, url: undefined } as chrome.tabs.Tab);
+            mockGet.mockResolvedValueOnce({ id: 2, url: undefined } as browser.tabs.Tab);
             await serviceWorker.handleTabActivated({ tabId: 2 });
             expect(mockSetBadgeText).toHaveBeenCalledWith({ text: '' });
         });
@@ -730,7 +730,7 @@ describe('service-worker handlers', () => {
             // @ts-expect-error - vi.fn() type narrowing
             headerDetector.HeaderDetector.normalizeUrl.mockReturnValue('https://private.com');
             RecordingLogic.cacheState.privacyCache = new Map([['https://private.com', { isPrivate: true }]]);
-            mockGet.mockResolvedValueOnce({ id: 3, url: 'https://private.com' } as chrome.tabs.Tab);
+            mockGet.mockResolvedValueOnce({ id: 3, url: 'https://private.com' } as browser.tabs.Tab);
 
             await serviceWorker.handleTabActivated({ tabId: 3 });
             expect(mockSetBadgeText).toHaveBeenCalledWith({ text: '!' });
@@ -741,13 +741,13 @@ describe('service-worker handlers', () => {
             // @ts-expect-error - vi.fn() type narrowing
             headerDetector.HeaderDetector.normalizeUrl.mockReturnValue('https://public.com');
             RecordingLogic.cacheState.privacyCache = new Map([['https://public.com', { isPrivate: false }]]);
-            mockGet.mockResolvedValueOnce({ id: 4, url: 'https://public.com' } as chrome.tabs.Tab);
+            mockGet.mockResolvedValueOnce({ id: 4, url: 'https://public.com' } as browser.tabs.Tab);
 
             await serviceWorker.handleTabActivated({ tabId: 4 });
             expect(mockSetBadgeText).toHaveBeenCalledWith({ text: '' });
         });
 
-        it('should handle chrome.tabs.get error gracefully', async () => {
+        it('should handle browser.tabs.get error gracefully', async () => {
             mockGet.mockRejectedValueOnce(new Error('Tab not found'));
             await serviceWorker.handleTabActivated({ tabId: 999 });
             expect(mockSetBadgeText).toHaveBeenCalledWith({ text: '' });
@@ -757,7 +757,7 @@ describe('service-worker handlers', () => {
             // @ts-expect-error - vi.fn() type narrowing
             headerDetector.HeaderDetector.normalizeUrl.mockReturnValue('https://example.com');
             RecordingLogic.cacheState.privacyCache = null;
-            mockGet.mockResolvedValueOnce({ id: 5, url: 'https://example.com' } as chrome.tabs.Tab);
+            mockGet.mockResolvedValueOnce({ id: 5, url: 'https://example.com' } as browser.tabs.Tab);
 
             await serviceWorker.handleTabActivated({ tabId: 5 });
             expect(mockSetBadgeText).toHaveBeenCalledWith({ text: '' });
@@ -1020,7 +1020,7 @@ describe('service-worker handlers', () => {
             expect(pendingStorage.removePendingPages).not.toHaveBeenCalled();
         });
 
-        it('should trigger error logging when chrome.notifications.clear throws', async () => {
+        it('should trigger error logging when browser.notifications.clear throws', async () => {
             // Mock the clear function to throw
             mockClear.mockRejectedValueOnce(new Error('Notification API error'));
 
@@ -1214,7 +1214,7 @@ describe('service-worker handlers', () => {
         it('should return INVALID_SENDER_ERROR when sender.tab is missing', async () => {
             const sendResponse = vi.fn();
             const message = { type: 'VALID_VISIT', payload: { content: 'test' } } as ValidVisitMessage;
-            const sender = {} as chrome.runtime.MessageSender;
+            const sender = {} as browser.runtime.MessageSender;
 
             await serviceWorker.handleValidVisit(message, sender, sendResponse);
             expect(sendResponse).toHaveBeenCalledWith(
@@ -1225,7 +1225,7 @@ describe('service-worker handlers', () => {
         it('should call sendResponse with recording result when sender.tab exists', async () => {
             const sendResponse = vi.fn();
             const message = { type: 'VALID_VISIT', payload: { content: 'test content' } } as ValidVisitMessage;
-            const sender = { tab: { id: 1, url: 'https://example.com', title: 'Example' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 1, url: 'https://example.com', title: 'Example' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleValidVisit(message, sender, sendResponse);
             expect(sendResponse).toHaveBeenCalledWith(
@@ -1236,7 +1236,7 @@ describe('service-worker handlers', () => {
         it('should set badge for successful auto-save', async () => {
             const sendResponse = vi.fn();
             const message = { type: 'VALID_VISIT', payload: { content: 'test content' } } as ValidVisitMessage;
-            const sender = { tab: { id: 1, url: 'https://example.com', title: 'Example' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 1, url: 'https://example.com', title: 'Example' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleValidVisit(message, sender, sendResponse);
             expect(mockSetBadgeText).toHaveBeenCalled();
@@ -1255,7 +1255,7 @@ describe('service-worker handlers', () => {
 
             const sendResponse = vi.fn();
             const message = { type: 'VALID_VISIT', payload: { content: 'test content' } } as ValidVisitMessage;
-            const sender = { tab: { id: 3, url: 'https://example.com', title: 'Example' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 3, url: 'https://example.com', title: 'Example' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleValidVisit(message, sender, sendResponse);
             // Should still return success
@@ -1275,7 +1275,7 @@ describe('service-worker handlers', () => {
 
             const sendResponse = vi.fn();
             const message = { type: 'VALID_VISIT', payload: { content: 'test content' } } as ValidVisitMessage;
-            const sender = { tab: { id: 4, url: 'https://example.com', title: 'Example' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 4, url: 'https://example.com', title: 'Example' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleValidVisit(message, sender, sendResponse);
             expect(sendResponse).toHaveBeenCalledWith(
@@ -1358,7 +1358,7 @@ describe('service-worker handlers', () => {
                 type: 'MANUAL_RECORD',
                 payload: { title: 'Test', url: 'ftp://example.com', content: '' }
             } as ManualRecordMessage;
-            const sender = {} as chrome.runtime.MessageSender;
+            const sender = {} as browser.runtime.MessageSender;
 
             await serviceWorker.handleManualRecord(message, sender, sendResponse);
             expect(sendResponse).toHaveBeenCalledWith(
@@ -1372,7 +1372,7 @@ describe('service-worker handlers', () => {
                 type: 'MANUAL_RECORD',
                 payload: { title: 'Test', url: 'https://example.com', content: 'content', skipAi: false }
             } as ManualRecordMessage;
-            const sender = {} as chrome.runtime.MessageSender;
+            const sender = {} as browser.runtime.MessageSender;
 
             await serviceWorker.handleManualRecord(message, sender, sendResponse);
             expect(sendResponse).toHaveBeenCalledWith(
@@ -1386,7 +1386,7 @@ describe('service-worker handlers', () => {
                 type: 'PREVIEW_RECORD',
                 payload: { title: 'Test', url: 'https://example.com', content: 'content' }
             } as PreviewRecordMessage;
-            const sender = {} as chrome.runtime.MessageSender;
+            const sender = {} as browser.runtime.MessageSender;
 
             await serviceWorker.handleManualRecord(message, sender, sendResponse);
             expect(sendResponse).toHaveBeenCalledWith(
@@ -1400,7 +1400,7 @@ describe('service-worker handlers', () => {
                 type: 'MANUAL_RECORD',
                 payload: { title: 'Test', url: 'https://example.com', content: '', skipAi: false }
             } as ManualRecordMessage;
-            const sender = {} as chrome.runtime.MessageSender;
+            const sender = {} as browser.runtime.MessageSender;
 
             // Disable auto content fetch
             // @ts-expect-error - vi.fn() type narrowing
@@ -1426,7 +1426,7 @@ describe('service-worker handlers', () => {
                 type: 'MANUAL_RECORD',
                 payload: { title: 'Test', url: 'https://example.com', content: 'content', skipAi: true }
             } as ManualRecordMessage;
-            const sender = { tab: { id: 1, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 1, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             // First call - should succeed
             await serviceWorker.handleManualRecord(message, sender, sendResponse);
@@ -1443,7 +1443,7 @@ describe('service-worker handlers', () => {
                 type: 'MANUAL_RECORD',
                 payload: { title: 'Test', url: 'https://example.com', content: 'content', skipAi: true }
             });
-            const sender = { tab: { id: 999, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 999, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             const rateLimitMax = 10;
 
@@ -1464,10 +1464,10 @@ describe('service-worker handlers', () => {
                 type: 'MANUAL_RECORD',
                 payload: { title: 'Test', url: 'https://example.com', content: '' }
             } as ManualRecordMessage;
-            const sender = { tab: { id: 1, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 1, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             mockQuery.mockResolvedValueOnce([
-                { id: 123, url: 'https://example.com' } as chrome.tabs.Tab
+                { id: 123, url: 'https://example.com' } as browser.tabs.Tab
             ]);
 
             await serviceWorker.handleManualRecord(message, sender, sendResponse);
@@ -1491,7 +1491,7 @@ describe('service-worker handlers', () => {
                 type: 'MANUAL_RECORD',
                 payload: { title: 'Test', url: 'https://example.com', content: '' }
             } as ManualRecordMessage;
-            const sender = { tab: { id: 2, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 2, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleManualRecord(message, sender, sendResponse);
 
@@ -1565,7 +1565,7 @@ describe('service-worker handlers', () => {
                 type: 'CONTENT_CLEANSING_EXECUTED',
                 payload: { hardStripRemoved: 2, keywordStripRemoved: 3, totalRemoved: 5 }
             };
-            const sender = { tab: { id: 1, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 1, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleContentCleansingExecuted(message, sender, sendResponse);
 
@@ -1582,7 +1582,7 @@ describe('service-worker handlers', () => {
                 type: 'CONTENT_CLEANSING_EXECUTED',
                 payload: { hardStripRemoved: 2, keywordStripRemoved: 3, totalRemoved: 5 }
             };
-            const sender = { tab: { id: 2, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 2, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleContentCleansingExecuted(message, sender, sendResponse);
 
@@ -1595,7 +1595,7 @@ describe('service-worker handlers', () => {
                 type: 'CONTENT_CLEANSING_EXECUTED',
                 payload: { hardStripRemoved: 3, keywordStripRemoved: 0, totalRemoved: 3 }
             };
-            const sender = { tab: { id: 3, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 3, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleContentCleansingExecuted(message, sender, sendResponse);
 
@@ -1608,7 +1608,7 @@ describe('service-worker handlers', () => {
                 type: 'CONTENT_CLEANSING_EXECUTED',
                 payload: { hardStripRemoved: 0, keywordStripRemoved: 4, totalRemoved: 4 }
             };
-            const sender = { tab: { id: 4, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 4, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleContentCleansingExecuted(message, sender, sendResponse);
 
@@ -1621,7 +1621,7 @@ describe('service-worker handlers', () => {
                 type: 'CONTENT_CLEANSING_EXECUTED',
                 payload: { hardStripRemoved: 0, keywordStripRemoved: 0, totalRemoved: 0 }
             };
-            const sender = { tab: { id: 5, url: 'https://example.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 5, url: 'https://example.com' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleContentCleansingExecuted(message, sender, sendResponse);
 
@@ -1635,7 +1635,7 @@ describe('service-worker handlers', () => {
                 type: 'CONTENT_CLEANSING_EXECUTED',
                 payload: { hardStripRemoved: 2, keywordStripRemoved: 3, totalRemoved: 5 }
             };
-            const sender = { tab: { id: 6 } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 6 } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleContentCleansingExecuted(message, sender, sendResponse);
 
@@ -1651,7 +1651,7 @@ describe('service-worker handlers', () => {
         it('should return allowed: true when domain is allowed', async () => {
             const sendResponse = vi.fn();
             const message: CheckDomainMessage = { type: 'CHECK_DOMAIN' };
-            const sender = { tab: { id: 1, url: 'https://allowed.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 1, url: 'https://allowed.com' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleCheckDomain(message, sender, sendResponse);
 
@@ -1666,7 +1666,7 @@ describe('service-worker handlers', () => {
 
             const sendResponse = vi.fn();
             const message: CheckDomainMessage = { type: 'CHECK_DOMAIN' };
-            const sender = { tab: { id: 2, url: 'https://blocked.com' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 2, url: 'https://blocked.com' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleCheckDomain(message, sender, sendResponse);
 
@@ -1678,7 +1678,7 @@ describe('service-worker handlers', () => {
         it('should return allowed: false when sender.tab.url is empty', async () => {
             const sendResponse = vi.fn();
             const message: CheckDomainMessage = { type: 'CHECK_DOMAIN' };
-            const sender = { tab: { id: 3, url: '' } } as chrome.runtime.MessageSender;
+            const sender = { tab: { id: 3, url: '' } } as browser.runtime.MessageSender;
 
             await serviceWorker.handleCheckDomain(message, sender, sendResponse);
 

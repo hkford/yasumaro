@@ -145,9 +145,9 @@ export function extractMainContent(
                     );
 
                     // Chrome Extension 環境の場合のみ、Badge 通知を送信
-                    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+                    if (typeof chrome !== 'undefined' && browser.runtime && browser.runtime.sendMessage) {
                         console.log('[ContentExtractor] Sending CONTENT_CLEANSING_EXECUTED message');
-                        void chrome.runtime.sendMessage({
+                        void browser.runtime.sendMessage({
                             type: 'CONTENT_CLEANSING_EXECUTED',
                             payload: {
                                 hardStripRemoved: cleanseResult.hardStripRemoved,

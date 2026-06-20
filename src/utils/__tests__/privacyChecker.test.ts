@@ -4,7 +4,7 @@ import { checkPrivacy } from '../privacyChecker.js';
 describe('privacyChecker', () => {
   describe('checkPrivacy - Cache-Control detection', () => {
     test('Cache-Control: private を検出できる', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'Cache-Control', value: 'private, max-age=0' },
         { name: 'Content-Type', value: 'text/html' }
       ];
@@ -17,7 +17,7 @@ describe('privacyChecker', () => {
     });
 
     test('Cache-Control: no-store 単独ではプライベート判定しない', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'Cache-Control', value: 'no-store' }
       ];
 
@@ -29,7 +29,7 @@ describe('privacyChecker', () => {
     });
 
     test('Cache-Control: no-store + Set-Cookie でプライベート判定', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'Cache-Control', value: 'no-store, no-cache, must-revalidate' },
         { name: 'Set-Cookie', value: 'session=abc123' }
       ];
@@ -42,7 +42,7 @@ describe('privacyChecker', () => {
     });
 
     test('Cache-Control: no-cache はプライベート判定しない（ニュースサイト等で常用されるため）', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'cache-control', value: 'no-cache, must-revalidate' }
       ];
 
@@ -57,7 +57,7 @@ describe('privacyChecker', () => {
 
   describe('checkPrivacy - Set-Cookie detection', () => {
     test('Set-Cookie 単独ではプライベート判定しない', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'Set-Cookie', value: 'session=abc123; HttpOnly' },
         { name: 'Content-Type', value: 'text/html' }
       ];
@@ -70,7 +70,7 @@ describe('privacyChecker', () => {
     });
 
     test('Set-Cookie + Vary: Cookie でプライベート判定', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'Set-Cookie', value: 'session=abc123; HttpOnly' },
         { name: 'Vary', value: 'Cookie, Accept-Encoding' }
       ];
@@ -86,7 +86,7 @@ describe('privacyChecker', () => {
 
   describe('checkPrivacy - Authorization detection', () => {
     test('Authorization ヘッダーを検出できる', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'Authorization', value: 'Bearer token123' }
       ];
 
@@ -100,7 +100,7 @@ describe('privacyChecker', () => {
 
   describe('checkPrivacy - 複数条件の優先順位', () => {
     test('Cache-Control が最優先される', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'Cache-Control', value: 'private' },
         { name: 'Set-Cookie', value: 'session=abc' },
         { name: 'Authorization', value: 'Bearer token' }
@@ -113,7 +113,7 @@ describe('privacyChecker', () => {
     });
 
     test('Set-Cookie + Vary: Cookie が Authorization より優先される', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'Set-Cookie', value: 'session=abc' },
         { name: 'Vary', value: 'Cookie' },
         { name: 'Authorization', value: 'Bearer token' }
@@ -128,7 +128,7 @@ describe('privacyChecker', () => {
 
   describe('checkPrivacy - 非プライベートページ', () => {
     test('プライベートヘッダーがない場合は isPrivate: false', () => {
-      const headers: chrome.webRequest.HttpHeader[] = [
+      const headers: browser.webRequest.HttpHeader[] = [
         { name: 'Content-Type', value: 'text/html' },
         { name: 'Cache-Control', value: 'public, max-age=3600' }
       ];

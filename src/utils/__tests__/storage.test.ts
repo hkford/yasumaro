@@ -165,7 +165,7 @@ describe('storage', () => {
   });
 
   describe('updateDomainFilterCache', () => {
-    it('calls chrome.storage.set with whitelist mode data', async () => {
+    it('calls browser.storage.set with whitelist mode data', async () => {
       const mockSet = vi.fn().mockResolvedValue(undefined);
       const mockStorage = {
         local: {
@@ -197,7 +197,7 @@ describe('storage', () => {
       );
     });
 
-    it('calls chrome.storage.set with blacklist mode data', async () => {
+    it('calls browser.storage.set with blacklist mode data', async () => {
       const mockSet = vi.fn().mockResolvedValue(undefined);
       const mockStorage = {
         local: {

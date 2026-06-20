@@ -45,7 +45,7 @@ function createStorageMocks() {
   let storage = JSON.parse(JSON.stringify(INITIAL_STORAGE));
 
   // Store original module for cleanup (not inner mocks)
-  const chromeStorageLocal = chrome.storage.local;
+  const chromeStorageLocal = browser.storage.local;
 
   // Create fresh mock implementations
   const getMock = vi.fn((keys: any, callback: any) => {
@@ -138,7 +138,7 @@ function createStorageMocks() {
   };
 
   // Replace global mocks
-  chrome.storage.local = {
+  browser.storage.local = {
     get: getMock,
     set: setMock,
     remove: removeMock,
@@ -152,7 +152,7 @@ function createStorageMocks() {
     setStorageState,
     resetStorage,
     restoreOriginal: () => {
-      chrome.storage.local = chromeStorageLocal;
+      browser.storage.local = chromeStorageLocal;
     }
   };
 }

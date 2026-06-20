@@ -30,7 +30,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('HTTPエラーを適切に処理', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: false,
       error: 'HTTP 404: Not Found'
     });
@@ -41,7 +41,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('空のレスポンスを検出', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: true,
       data: '  ',
       contentType: 'text/plain'
@@ -73,7 +73,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('有効なURLとContent-Type for text/plain', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: true,
       data: 'example.com',
       contentType: 'text/plain'
@@ -86,7 +86,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('有効なURLとContent-Type for text/html', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: true,
       data: 'example.com',
       contentType: 'text/html'
@@ -99,7 +99,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('有効なURLとContent-Type for application/octet-stream', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: true,
       data: 'example.com',
       contentType: 'application/octet-stream'
@@ -112,7 +112,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('非テキストContent-Typeで警告ログを出力', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: true,
       data: '{"domain":"example.com"}',
       contentType: 'application/json'
@@ -130,7 +130,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('Content-Typeがnullの場合でも警告を出さない', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: true,
       data: 'example.com',
       contentType: null
@@ -143,7 +143,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('HTTP 500エラーを適切に処理', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: false,
       error: 'HTTP 500: Internal Server Error'
     });
@@ -154,7 +154,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('HTTP 403エラーを適切に処理', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: false,
       error: 'HTTP 403: Forbidden'
     });
@@ -165,7 +165,7 @@ describe('fetchFromUrl - Error Handling', () => {
   test('ネットワークエラーを適切に処理', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-    global.chrome.runtime.sendMessage.mockResolvedValueOnce({
+    global.browser.runtime.sendMessage.mockResolvedValueOnce({
       success: false,
       error: 'Failed to fetch'
     });

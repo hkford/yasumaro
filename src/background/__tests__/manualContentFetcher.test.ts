@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ManualContentFetcher } from '../manualContentFetcher.js';
 
-// chrome.tabs と chrome.scripting をモック
-const mockTabs: chrome.tabs.Tab[] = [];
+// browser.tabs と browser.scripting をモック
+const mockTabs: browser.tabs.Tab[] = [];
 const mockScriptResult = 'Extracted page content';
 
 beforeEach(() => {
@@ -86,7 +86,7 @@ describe('ManualContentFetcher', () => {
   });
 
   it('uses existing tab if URL is already open', async () => {
-    mockTabs.push({ id: 42, url: 'https://existing.com' } as chrome.tabs.Tab);
+    mockTabs.push({ id: 42, url: 'https://existing.com' } as browser.tabs.Tab);
     const fetcher = new ManualContentFetcher();
     await fetcher.fetchContent('https://existing.com');
 

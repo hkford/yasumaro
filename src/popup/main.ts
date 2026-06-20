@@ -21,10 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initAllUrlsPermissionBanner().catch((error) => {
     logError('[Initialize] Failed to init all-urls permission banner', { cause: error }, ErrorCode.INTERNAL_ERROR);
   });
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tabId = tabs[0]?.id;
     if (tabId !== undefined) {
-      chrome.action.setBadgeText({ text: '', tabId });
+      browser.action.setBadgeText({ text: '', tabId });
     }
   });
 });

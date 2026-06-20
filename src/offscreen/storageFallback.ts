@@ -1,6 +1,6 @@
 /**
  * storageFallback.ts
- * chrome.storage.local-based fallback storage for environments where OPFS is unavailable.
+ * browser.storage.local-based fallback storage for environments where OPFS is unavailable.
  * Provides the same CRUD interface as sqlite.ts but uses linear search instead of FTS5.
  */
 
@@ -15,7 +15,7 @@ interface StoredData {
 
 export class FallbackStorage {
   private async loadData(): Promise<StoredData> {
-    const result = await chrome.storage.local.get(STORAGE_KEY);
+    const result = await browser.storage.local.get(STORAGE_KEY);
     const data = result[STORAGE_KEY];
     if (data && typeof data === 'object' && 'records' in data && Array.isArray((data as StoredData).records)) {
       return data as StoredData;
@@ -24,14 +24,14 @@ export class FallbackStorage {
   }
 
   private async saveData(data: StoredData): Promise<void> {
-    await chrome.storage.local.set({ [STORAGE_KEY]: data });
+    await browser.storage.local.set({ [STORAGE_KEY]: data });
   }
 
   private async getNextId(): Promise<number> {
-    const result = await chrome.storage.local.get(STORAGE_KEY_COUNTER);
+    const result = await browser.storage.local.get(STORAGE_KEY_COUNTER);
     const current = typeof result[STORAGE_KEY_COUNTER] === 'number' ? result[STORAGE_KEY_COUNTER] : 0;
     const next = current + 1;
-    await chrome.storage.local.set({ [STORAGE_KEY_COUNTER]: next });
+    await browser.storage.local.set({ [STORAGE_KEY_COUNTER]: next });
     return next;
   }
 
@@ -258,7 +258,7 @@ export class FallbackStorage {
   async clearAll(): Promise<{ success: boolean; error?: string }> {
     try {
       await this.saveData({ records: [] });
-      await chrome.storage.local.set({ [STORAGE_KEY_COUNTER]: 0 });
+      await browser.storage.local.set({ [STORAGE_KEY_COUNTER]: 0 });
       return { success: true };
     } catch (error) {
       return { success: false, error: String(error) };

@@ -31,7 +31,7 @@ vi.mock('../../utils/logger.js', () => ({
     }
 }));
 
-// chrome.storage.local のモック
+// browser.storage.local のモック
 const storageMock: Record<string, unknown> = {};
 
 (global as any).chrome = {
@@ -101,13 +101,13 @@ describe('getPrivacyConsent', () => {
     });
 
     it('ストレージエラー時は false を返す', async () => {
-        (global as any).chrome.storage.local.get = vi.fn(async () => {
+        (global as any).browser.storage.local.get = vi.fn(async () => {
             throw new Error('Storage error');
         });
         const state = await getPrivacyConsent();
         expect(state.hasConsented).toBe(false);
         // 元に戻す
-        (global as any).chrome.storage.local.get = vi.fn(async (keys: string | string[]) => {
+        (global as any).browser.storage.local.get = vi.fn(async (keys: string | string[]) => {
             const ks = Array.isArray(keys) ? keys : [keys];
             return Object.fromEntries(ks.map(k => [k, storageMock[k]]));
         });
@@ -136,14 +136,14 @@ describe('savePrivacyConsent', () => {
     });
 
     it('ストレージ書き込みエラー時にthrowする', async () => {
-        const originalSet = (global as any).chrome.storage.local.set;
-        (global as any).chrome.storage.local.set = vi.fn(async () => {
+        const originalSet = (global as any).browser.storage.local.set;
+        (global as any).browser.storage.local.set = vi.fn(async () => {
             throw new Error('Storage write error');
         });
 
         await expect(savePrivacyConsent()).rejects.toThrow('Storage write error');
 
-        (global as any).chrome.storage.local.set = originalSet;
+        (global as any).browser.storage.local.set = originalSet;
     });
 });
 
@@ -217,15 +217,15 @@ describe('migrateLegacyPrivacyConsent', () => {
     });
 
     it('ストレージエラー時にfalseを返す', async () => {
-        const originalGet = (global as any).chrome.storage.local.get;
-        (global as any).chrome.storage.local.get = vi.fn(async () => {
+        const originalGet = (global as any).browser.storage.local.get;
+        (global as any).browser.storage.local.get = vi.fn(async () => {
             throw new Error('Storage read error');
         });
 
         const result = await migrateLegacyPrivacyConsent();
         expect(result).toBe(false);
 
-        (global as any).chrome.storage.local.get = originalGet;
+        (global as any).browser.storage.local.get = originalGet;
     });
 });
 
@@ -261,14 +261,14 @@ describe('withdrawPrivacyConsent', () => {
     it('ストレージ書き込みエラー時にthrowする', async () => {
         await savePrivacyConsent();
 
-        const originalSet = (global as any).chrome.storage.local.set;
-        (global as any).chrome.storage.local.set = vi.fn(async () => {
+        const originalSet = (global as any).browser.storage.local.set;
+        (global as any).browser.storage.local.set = vi.fn(async () => {
             throw new Error('Storage write error');
         });
 
         await expect(withdrawPrivacyConsent()).rejects.toThrow('Storage write error');
 
-        (global as any).chrome.storage.local.set = originalSet;
+        (global as any).browser.storage.local.set = originalSet;
     });
 });
 

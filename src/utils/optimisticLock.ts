@@ -1,7 +1,7 @@
 /**
  * optimisticLock.ts
  * Read-Modify-Writeパターンを提供するユーティリティ
- * chrome.storage.local.set のアトミック性に依存した簡易実装
+ * browser.storage.local.set のアトミック性に依存した簡易実装
  */
 
 import { logDebug } from './logger.js';
@@ -45,7 +45,7 @@ export class ConflictError extends Error {
  * 3. バージョンチェックを行い、アトミックに書き込み
  * 4. 競合が発生した場合は指数バックオックでリトライ
  *
- * 注意: chrome.storage.local.set はアトミックですが、Read と Write の間に
+ * 注意: browser.storage.local.set はアトミックですが、Read と Write の間に
  * 他のプロセスが書き込むと、データが上書きされる可能性があります。
  * この実装ではバージョンベースの競合検出と指数バックオック付きリトライで
  * データの一貫性を保証します。
@@ -60,7 +60,7 @@ export class ConflictError extends Error {
  */
 export async function withOptimisticLock<T>(
     key: string,
-    updateFn: (currentValue: T) => T,
+    updateFn: (currentValue: T) => T | Promise<T>,
     options: { maxRetries?: number; initialDelay?: number } = {}
 ): Promise<T> {
     const { maxRetries = 5, initialDelay = 100 } = options;
@@ -72,16 +72,16 @@ export async function withOptimisticLock<T>(
 
         try {
             // Step 1: 現在の値とバージョンを読み込み
-            const result = await chrome.storage.local.get([key, `${key}_version`]);
+            const result = await browser.storage.local.get([key, `${key}_version`]);
             const currentValue = result[key] as T;
             const currentVersion = result[`${key}_version`] as number || INITIAL_VERSION;
 
             // Step 2: 新しい値を計算
-            const newValue = updateFn(currentValue);
+            const newValue = await updateFn(currentValue);
             const newVersion = currentVersion + 1;
 
             // Step 3: CAS (Compare-And-Swap) 操作を試行
-            // chrome.storage.local では条件付き更新が直接できないため、
+            // browser.storage.local では条件付き更新が直接できないため、
             // atomic get/setループを使用する
             await performCasUpdate(key, currentValue, newValue, currentVersion, newVersion);
 
@@ -139,7 +139,7 @@ async function performCasUpdate<T>(
     newVersion: number
 ): Promise<void> {
     // 二重チェックを行い、可能な限りレースコンディションを最小化
-    const verifyResult = await chrome.storage.local.get([key, `${key}_version`]);
+    const verifyResult = await browser.storage.local.get([key, `${key}_version`]);
     const verifyVersion = verifyResult[`${key}_version`] as number || INITIAL_VERSION;
     const verifyValue = verifyResult[key] as T;
 
@@ -160,8 +160,8 @@ async function performCasUpdate<T>(
         throw new ConflictError(key, currentVersion, verifyVersion);
     }
 
-    // アトミックに書き込み（chrome.storage.local.setは呼び出し内でアトミック）
-    await chrome.storage.local.set({
+    // アトミックに書き込み（browser.storage.local.setは呼び出し内でアトミック）
+    await browser.storage.local.set({
         [key]: newValue,
         [`${key}_version`]: newVersion
     });

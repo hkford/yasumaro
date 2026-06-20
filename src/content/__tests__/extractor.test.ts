@@ -9,7 +9,7 @@ import { JSDOM } from 'jsdom';
 // Mock chrome API before importing
 const chromeMock = {
     runtime: {
-        getURL: vi.fn(() => 'chrome-extension://test/content-extractor.js'),
+        getURL: vi.fn(() => 'browser-extension://test/content-extractor.js'),
         sendMessage: vi.fn(() => Promise.resolve({ success: true })),
         lastError: null,
         onMessage: {
@@ -289,7 +289,7 @@ describe('loadSettings - error handling', () => {
     });
 
     it('handles missing settings gracefully', async () => {
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -300,7 +300,7 @@ describe('loadSettings - error handling', () => {
     });
 
     it('handles invalid settings values', async () => {
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') {
                     callback({
@@ -316,7 +316,7 @@ describe('loadSettings - error handling', () => {
     });
 
     it('handles settings with array values', async () => {
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') {
                     callback({
@@ -331,7 +331,7 @@ describe('loadSettings - error handling', () => {
     });
 
     it('handles threshold boundary values correctly', async () => {
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') {
                     callback({
@@ -349,7 +349,7 @@ describe('loadSettings - error handling', () => {
     });
 
     it('handles threshold out-of-bounds values (clamping)', async () => {
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') {
                     callback({
@@ -365,7 +365,7 @@ describe('loadSettings - error handling', () => {
     });
 
     it('handles migrated settings structure', async () => {
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') {
                     callback({
@@ -389,7 +389,7 @@ describe('init - event listeners', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -426,7 +426,7 @@ describe('init - E2E test mode', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -460,7 +460,7 @@ describe('message handler - GET_CONTENT', () => {
         `;
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -633,13 +633,13 @@ describe('showPrivacyConfirmDialog - Promise and DOM', () => {
 });
 
 describe('module level code execution', () => {
-    it('module-level chrome.runtime.onMessage guard passes', async () => {
+    it('module-level browser.runtime.onMessage guard passes', async () => {
         // Test that the module-level guard passes with our mock
         // This ensures the message handler registration code runs
-        expect(typeof globalThis.chrome).toBe('object');
-        expect(chrome.runtime).toBeDefined();
-        expect(chrome.runtime.onMessage).toBeDefined();
-        expect(typeof chrome.runtime.onMessage.addListener).toBe('function');
+        expect(typeof browser).toBe('object');
+        expect(browser.runtime).toBeDefined();
+        expect(browser.runtime.onMessage).toBeDefined();
+        expect(typeof browser.runtime.onMessage.addListener).toBe('function');
     });
 });
 
@@ -648,7 +648,7 @@ describe('throttle function - beforeunload cleanup', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -675,7 +675,7 @@ describe('throttle function - beforeunload cleanup', () => {
     });
 });
 
-describe('message handler - chrome.runtime.onMessage registration', () => {
+describe('message handler - browser.runtime.onMessage registration', () => {
     beforeEach(() => {
         document.body.innerHTML = `
             <article>
@@ -685,7 +685,7 @@ describe('message handler - chrome.runtime.onMessage registration', () => {
         `;
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -693,10 +693,10 @@ describe('message handler - chrome.runtime.onMessage registration', () => {
         );
     });
 
-    it('chrome.runtime.onMessage.addListener is available in chrome mock', async () => {
+    it('browser.runtime.onMessage.addListener is available in chrome mock', async () => {
         // The chrome mock should have onMessage.addListener defined
-        expect(typeof chrome.runtime.onMessage.addListener).toBe('function');
-        expect(chrome.runtime.onMessage.addListener).toBeDefined();
+        expect(typeof browser.runtime.onMessage.addListener).toBe('function');
+        expect(browser.runtime.onMessage.addListener).toBeDefined();
     });
 
     it('init completes without throwing and sets up state', async () => {
@@ -725,7 +725,7 @@ describe('updateMaxScroll - edge cases', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -752,7 +752,7 @@ describe('stopPeriodicCheck', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -773,7 +773,7 @@ describe('startPeriodicCheck', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -793,7 +793,7 @@ describe('Periodic check start/stop', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -812,7 +812,7 @@ describe('checkVisitConditions - error handling paths', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -840,7 +840,7 @@ describe('Content extraction with cleansing enabled', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({
                     content_strip_hard_enabled: true,
@@ -890,7 +890,7 @@ describe('reportValidVisit - error path coverage', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -924,7 +924,7 @@ describe('Visibility change handling', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1106,7 +1106,7 @@ describe('Chrome runtime error handling', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1114,16 +1114,16 @@ describe('Chrome runtime error handling', () => {
         );
     });
 
-    it('handles missing chrome.runtime.sendMessage', async () => {
-        const originalSendMessage = chrome.runtime.sendMessage;
+    it('handles missing browser.runtime.sendMessage', async () => {
+        const originalSendMessage = browser.runtime.sendMessage;
 
         // @ts-ignore
-        chrome.runtime.sendMessage = undefined;
+        browser.runtime.sendMessage = undefined;
 
         // Should not throw when importing
         await expect(init()).resolves.not.toThrow();
 
-        chrome.runtime.sendMessage = originalSendMessage;
+        browser.runtime.sendMessage = originalSendMessage;
     });
 });
 
@@ -1132,7 +1132,7 @@ describe('showPrivacyConfirmDialog - button event handlers', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1232,7 +1232,7 @@ describe('showPrivacyConfirmDialog - i18n message handling', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1240,9 +1240,9 @@ describe('showPrivacyConfirmDialog - i18n message handling', () => {
         );
     });
 
-    it('uses chrome.i18n.getMessage for dialog text', async () => {
-        // Verify chrome.i18n.getMessage is called
-        expect(chrome.i18n.getMessage).toBeDefined();
+    it('uses browser.i18n.getMessage for dialog text', async () => {
+        // Verify browser.i18n.getMessage is called
+        expect(browser.i18n.getMessage).toBeDefined();
     });
 
     it('handles missing i18n keys with fallbacks', async () => {
@@ -1269,7 +1269,7 @@ describe('reportValidVisit - response handling', () => {
         `;
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1320,7 +1320,7 @@ describe('showPrivacyConfirmDialog - button event handlers', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1477,7 +1477,7 @@ describe('message handler - async response verification', () => {
         `;
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1489,7 +1489,7 @@ describe('message handler - async response verification', () => {
         await init();
         // The message handler uses async response pattern (returns true to indicate async handling)
         // This test verifies the module structure is correct
-        expect(typeof chrome.runtime.onMessage.addListener).toBe('function');
+        expect(typeof browser.runtime.onMessage.addListener).toBe('function');
     });
 });
 
@@ -1503,10 +1503,10 @@ describe('message handler - GET_CONTENT message type', () => {
         `;
     });
 
-    it('chrome.runtime.onMessage.addListener is available in chrome mock', () => {
+    it('browser.runtime.onMessage.addListener is available in chrome mock', () => {
         // The chrome mock should have onMessage.addListener defined
-        expect(typeof chrome.runtime.onMessage.addListener).toBe('function');
-        expect(chrome.runtime.onMessage.addListener).toBeDefined();
+        expect(typeof browser.runtime.onMessage.addListener).toBe('function');
+        expect(browser.runtime.onMessage.addListener).toBeDefined();
     });
 
     it('init completes without throwing and sets up state', async () => {
@@ -1535,7 +1535,7 @@ describe('showPrivacyConfirmDialog - setTimeout focus behavior', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1613,7 +1613,7 @@ describe('showPrivacyConfirmDialog - full dialog creation', () => {
         document.body.innerHTML = '<div id="test"></div>';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1726,7 +1726,7 @@ describe('checkVisitConditions - E2E test state updates', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1774,7 +1774,7 @@ describe('message handler - async response verification', () => {
         `;
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1798,7 +1798,7 @@ describe('reportValidVisit - messageSender interaction', () => {
         `;
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1834,7 +1834,7 @@ describe('checkVisitConditions - E2E test state updates', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1877,7 +1877,7 @@ describe('Visibility change - full lifecycle', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1912,7 +1912,7 @@ describe('init - event listener cleanup on beforeunload', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -1941,7 +1941,7 @@ describe('message handler - GET_CONTENT response building', () => {
         `;
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -2014,7 +2014,7 @@ describe('checkVisitConditions - scroll tracking', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -2048,7 +2048,7 @@ describe('reportValidVisit error paths', () => {
         `;
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -2086,7 +2086,7 @@ describe('message handler - GET_CONTENT response building', () => {
         `;
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -2159,7 +2159,7 @@ describe('init - early guard conditions', () => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.spyOn(Date, 'now').mockReturnValue(1000000);
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});
@@ -2184,7 +2184,7 @@ describe('loadSettings with various cleansing options', () => {
     });
 
     it('handles all cleansing option flags', async () => {
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') {
                     callback({
@@ -2212,7 +2212,7 @@ describe('loadSettings with various cleansing options', () => {
     });
 
     it('handles custom patterns array', async () => {
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') {
                     callback({
@@ -2226,7 +2226,7 @@ describe('loadSettings with various cleansing options', () => {
     });
 
     it('handles non-array custom patterns gracefully', async () => {
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') {
                     callback({

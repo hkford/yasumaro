@@ -569,8 +569,8 @@ describe('extractMainContent - deduplication', () => {
 // Chrome Extension API パス (cleanseEnabled=true)
 // ─────────────────────────────────────────────
 describe('extractMainContent - Chrome Extension API', () => {
-    it('sends CONTENT_CLEANSING_EXECUTED message when chrome.runtime available', () => {
-        // chrome.runtime.sendMessage をモック
+    it('sends CONTENT_CLEANSING_EXECUTED message when browser.runtime available', () => {
+        // browser.runtime.sendMessage をモック
         const mockSendMessage = vi.fn().mockResolvedValue({});
         (window as unknown as Record<string, unknown>).chrome = {
             runtime: {
@@ -1811,7 +1811,7 @@ describe('extractMainContent - count-only path with targets outside candidate', 
 // Chrome Extension API .catch path (line 160)
 // ─────────────────────────────────────────────
 describe('extractMainContent - Chrome Extension API catch path', () => {
-    it('covers catch block when chrome.runtime.sendMessage rejects', () => {
+    it('covers catch block when browser.runtime.sendMessage rejects', () => {
         const mockSendMessage = vi.fn().mockRejectedValue(new Error('Port closed'));
         (window as unknown as Record<string, unknown>).chrome = {
             runtime: {

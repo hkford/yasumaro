@@ -429,7 +429,7 @@ describe('RecordingLogic: 設定キャッシュ（タスク5）', () => {
  * 実装概要:
  *
  * 設定キャッシュの実装により、以下のメリットが期待できます:
- * 1. chrome.storage.localへのアクセス回数を削減
+ * 1. browser.storage.localへのアクセス回数を削減
  * 2. Service Workerの再起動時にキャッシュ状態を維持（staticキャッシュ）
  * 3. 設定変更時にキャッシュを簡単に無効化（invalidateSettingsCache）
  *

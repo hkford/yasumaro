@@ -30,7 +30,7 @@ vi.mock('../urlEntry.js', async () => {
 
 describe('urlStorage', () => {
     beforeEach(async () => {
-        await chrome.storage.local.clear();
+        await browser.storage.local.clear();
     });
 
     // ------------------------------------------------------------------
@@ -44,13 +44,13 @@ describe('urlStorage', () => {
         });
 
         it('returns Set of saved URLs from storage', async () => {
-            await chrome.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
+            await browser.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
             const result = await getSavedUrls();
             expect(result).toEqual(new Set(['https://a.com', 'https://b.com']));
         });
 
         it('ignores non-array values and returns empty Set', async () => {
-            await chrome.storage.local.set({ savedUrls: null });
+            await browser.storage.local.set({ savedUrls: null });
             const result = await getSavedUrls();
             expect(result.size).toBe(0);
         });
@@ -71,14 +71,14 @@ describe('urlStorage', () => {
                 { url: 'https://a.com', timestamp: 1000 },
                 { url: 'https://b.com', timestamp: 2000 },
             ];
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: entries });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: entries });
             const result = await getSavedUrlsWithTimestamps();
             expect(result.get('https://a.com')).toBe(1000);
             expect(result.get('https://b.com')).toBe(2000);
         });
 
         it('ignores non-array values and returns empty Map', async () => {
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: undefined });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: undefined });
             const result = await getSavedUrlsWithTimestamps();
             expect(result.size).toBe(0);
         });
@@ -97,7 +97,7 @@ describe('urlStorage', () => {
             const entries: SavedUrlEntry[] = [
                 { url: 'https://a.com', timestamp: 1000, recordType: 'auto', tags: ['tag1'] },
             ];
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: entries });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: entries });
             const result = await getSavedUrlEntries();
             expect(result).toHaveLength(1);
             expect(result[0].url).toBe('https://a.com');
@@ -114,10 +114,10 @@ describe('urlStorage', () => {
             const urlSet = new Set(['https://x.com', 'https://y.com']);
             await setSavedUrls(urlSet);
 
-            const stored = await chrome.storage.local.get('savedUrls');
+            const stored = await browser.storage.local.get('savedUrls');
             expect(stored.savedUrls).toEqual(['https://x.com', 'https://y.com']);
 
-            const timestamps = await chrome.storage.local.get('savedUrlsWithTimestamps');
+            const timestamps = await browser.storage.local.get('savedUrlsWithTimestamps');
             expect(timestamps.savedUrlsWithTimestamps).toBeUndefined();
         });
 
@@ -126,10 +126,10 @@ describe('urlStorage', () => {
             const urlSet = new Set(['https://x.com']);
             await setSavedUrls(urlSet, 'https://x.com');
 
-            const stored = await chrome.storage.local.get('savedUrls');
+            const stored = await browser.storage.local.get('savedUrls');
             expect(stored.savedUrls).toContain('https://x.com');
 
-            const timestamps = await chrome.storage.local.get('savedUrlsWithTimestamps');
+            const timestamps = await browser.storage.local.get('savedUrlsWithTimestamps');
             expect(timestamps.savedUrlsWithTimestamps).toHaveLength(1);
             expect(timestamps.savedUrlsWithTimestamps[0].url).toBe('https://x.com');
             expect(timestamps.savedUrlsWithTimestamps[0].timestamp).toBe(5000);
@@ -139,7 +139,7 @@ describe('urlStorage', () => {
 
         it('handles empty url set', async () => {
             await setSavedUrls(new Set());
-            const stored = await chrome.storage.local.get('savedUrls');
+            const stored = await browser.storage.local.get('savedUrls');
             expect(stored.savedUrls).toEqual([]);
         });
     });
@@ -155,10 +155,10 @@ describe('urlStorage', () => {
             ]);
             await setSavedUrlsWithTimestamps(urlMap);
 
-            const storedTs = await chrome.storage.local.get('savedUrlsWithTimestamps');
+            const storedTs = await browser.storage.local.get('savedUrlsWithTimestamps');
             expect(storedTs.savedUrlsWithTimestamps).toHaveLength(2);
 
-            const storedUrls = await chrome.storage.local.get('savedUrls');
+            const storedUrls = await browser.storage.local.get('savedUrls');
             expect(storedUrls.savedUrls).toContain('https://a.com');
             expect(storedUrls.savedUrls).toContain('https://b.com');
         });
@@ -192,12 +192,12 @@ describe('urlStorage', () => {
                     obsidianDuration: 500,
                 },
             ];
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: existing });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: existing });
 
             const urlMap = new Map([['https://a.com', 3000]]);
             await setSavedUrlsWithTimestamps(urlMap);
 
-            const stored = await chrome.storage.local.get('savedUrlsWithTimestamps');
+            const stored = await browser.storage.local.get('savedUrlsWithTimestamps');
             const entry = stored.savedUrlsWithTimestamps[0] as SavedUrlEntry;
             expect(entry.timestamp).toBe(3000);
             expect(entry.recordType).toBe('auto');
@@ -231,7 +231,7 @@ describe('urlStorage', () => {
                 { url: 'https://old3.com', timestamp: 3000, content: 'content3' },
                 { url: 'https://new1.com', timestamp: 4000, content: 'content4' },
             ];
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: entries });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: entries });
 
             const urlMap = new Map([
                 ['https://old1.com', 1000],
@@ -241,7 +241,7 @@ describe('urlStorage', () => {
             ]);
             await setSavedUrlsWithTimestamps(urlMap);
 
-            const stored = await chrome.storage.local.get('savedUrlsWithTimestamps');
+            const stored = await browser.storage.local.get('savedUrlsWithTimestamps');
             const result = stored.savedUrlsWithTimestamps as SavedUrlEntry[];
             const byUrl = new Map(result.map(e => [e.url, e]));
 
@@ -254,7 +254,7 @@ describe('urlStorage', () => {
         });
 
         it('does not corrupt savedUrls when syncing identical URL sets', async () => {
-            await chrome.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
+            await browser.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
 
             const urlMap = new Map([
                 ['https://a.com', 1000],
@@ -262,14 +262,14 @@ describe('urlStorage', () => {
             ]);
             await setSavedUrlsWithTimestamps(urlMap);
 
-            const stored = await chrome.storage.local.get('savedUrls');
+            const stored = await browser.storage.local.get('savedUrls');
             expect(stored.savedUrls).toContain('https://a.com');
             expect(stored.savedUrls).toContain('https://b.com');
         });
 
         it('updates savedUrls when set sizes match but contents differ (line 124 branch)', async () => {
-            await chrome.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: [
+            await browser.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: [
                 { url: 'https://a.com', timestamp: 1000 },
                 { url: 'https://b.com', timestamp: 2000 },
             ]});
@@ -280,7 +280,7 @@ describe('urlStorage', () => {
             ]);
             await setSavedUrlsWithTimestamps(urlMap);
 
-            const stored = await chrome.storage.local.get('savedUrls');
+            const stored = await browser.storage.local.get('savedUrls');
             expect(stored.savedUrls).toContain('https://a.com');
             expect(stored.savedUrls).toContain('https://c.com');
             expect(stored.savedUrls).not.toContain('https://b.com');
@@ -351,8 +351,8 @@ describe('urlStorage', () => {
                     obsidianDuration: 50,
                 },
             ];
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: existing });
-            await chrome.storage.local.set({ savedUrls: ['https://full.com'] });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: existing });
+            await browser.storage.local.set({ savedUrls: ['https://full.com'] });
 
             await addSavedUrl('https://full.com', 'manual');
 
@@ -396,8 +396,8 @@ describe('urlStorage', () => {
                 { url: 'https://old.com', timestamp: eightDaysAgo },
                 { url: 'https://recent.com', timestamp: now - 60 * 60 * 1000 },
             ];
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: existing });
-            await chrome.storage.local.set({ savedUrls: ['https://old.com', 'https://recent.com'] });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: existing });
+            await browser.storage.local.set({ savedUrls: ['https://old.com', 'https://recent.com'] });
 
             await addSavedUrl('https://trigger.com');
 
@@ -420,8 +420,8 @@ describe('urlStorage', () => {
                 { url: 'https://3.com', timestamp: 3000 },
                 { url: 'https://4.com', timestamp: 4000 },
             ];
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: existing });
-            await chrome.storage.local.set({ savedUrls: ['https://1.com', 'https://2.com', 'https://3.com', 'https://4.com'] });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: existing });
+            await browser.storage.local.set({ savedUrls: ['https://1.com', 'https://2.com', 'https://3.com', 'https://4.com'] });
 
             // MAX_URL_SET_SIZE is mocked to 5, add 2 more -> should evict oldest
             await addSavedUrl('https://5.com');
@@ -450,8 +450,8 @@ describe('urlStorage', () => {
                 { url: 'https://3.com', timestamp: 3000, content: 'c3' },
                 { url: 'https://4.com', timestamp: 4000, content: 'c4' },
             ];
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: existing });
-            await chrome.storage.local.set({ savedUrls: ['https://1.com', 'https://2.com', 'https://3.com', 'https://4.com'] });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: existing });
+            await browser.storage.local.set({ savedUrls: ['https://1.com', 'https://2.com', 'https://3.com', 'https://4.com'] });
 
             await addSavedUrl('https://5.com');
 
@@ -475,8 +475,8 @@ describe('urlStorage', () => {
     // ------------------------------------------------------------------
     describe('removeSavedUrl', () => {
         it('removes URL from savedUrls set', async () => {
-            await chrome.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: [
+            await browser.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: [
                 { url: 'https://a.com', timestamp: 1000 },
                 { url: 'https://b.com', timestamp: 2000 },
             ]});
@@ -489,11 +489,11 @@ describe('urlStorage', () => {
         });
 
         it('removes URL from savedUrlsWithTimestamps', async () => {
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: [
+            await browser.storage.local.set({ savedUrlsWithTimestamps: [
                 { url: 'https://a.com', timestamp: 1000 },
                 { url: 'https://b.com', timestamp: 2000 },
             ]});
-            await chrome.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
+            await browser.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
 
             await removeSavedUrl('https://a.com');
 
@@ -503,8 +503,8 @@ describe('urlStorage', () => {
         });
 
         it('handles removal of non-existent URL gracefully', async () => {
-            await chrome.storage.local.set({ savedUrls: ['https://a.com'] });
-            await chrome.storage.local.set({ savedUrlsWithTimestamps: [
+            await browser.storage.local.set({ savedUrls: ['https://a.com'] });
+            await browser.storage.local.set({ savedUrlsWithTimestamps: [
                 { url: 'https://a.com', timestamp: 1000 },
             ]});
 
@@ -520,13 +520,13 @@ describe('urlStorage', () => {
     // ------------------------------------------------------------------
     describe('isUrlSaved', () => {
         it('returns true when URL exists in saved list', async () => {
-            await chrome.storage.local.set({ savedUrls: ['https://exists.com'] });
+            await browser.storage.local.set({ savedUrls: ['https://exists.com'] });
             const result = await isUrlSaved('https://exists.com');
             expect(result).toBe(true);
         });
 
         it('returns false when URL does not exist', async () => {
-            await chrome.storage.local.set({ savedUrls: ['https://a.com'] });
+            await browser.storage.local.set({ savedUrls: ['https://a.com'] });
             const result = await isUrlSaved('https://missing.com');
             expect(result).toBe(false);
         });
@@ -547,7 +547,7 @@ describe('urlStorage', () => {
         });
 
         it('returns correct count of saved URLs', async () => {
-            await chrome.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com', 'https://c.com'] });
+            await browser.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com', 'https://c.com'] });
             const count = await getSavedUrlCount();
             expect(count).toBe(3);
         });
@@ -581,7 +581,7 @@ describe('urlStorage', () => {
 
         it('handles undefined stored values in getSavedUrls', async () => {
             // Explicitly set savedUrls key to undefined to simulate absent data
-            await chrome.storage.local.set({ savedUrls: undefined });
+            await browser.storage.local.set({ savedUrls: undefined });
             const result = await getSavedUrls();
             expect(result.size).toBe(0);
         });

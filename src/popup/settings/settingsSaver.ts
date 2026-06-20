@@ -27,7 +27,7 @@ interface TestResponse {
  * @returns {Promise<ConnectionTestResult>} テスト結果
  */
 export async function runConnectionTest(): Promise<ConnectionTestResult> {
-    const testResult = await chrome.runtime.sendMessage({
+    const testResult = await browser.runtime.sendMessage({
         type: 'TEST_CONNECTIONS',
         payload: {}
     }) as TestResponse;

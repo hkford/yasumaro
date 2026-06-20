@@ -1,7 +1,7 @@
 /**
  * sqliteClient-unit.test.ts
  * Unit tests for SqliteClient — Gap 6 from coverage audit
- * Tests individual methods via mocked chrome.runtime.sendMessage
+ * Tests individual methods via mocked browser.runtime.sendMessage
  */
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -23,7 +23,7 @@ vi.mock('../sqliteAlert.js', () => ({
 import { SqliteClient } from '../sqliteClient.js';
 import { recordSqliteSuccess, recordSqliteFailure } from '../sqliteAlert.js';
 
-// Helper to simulate chrome.runtime.sendMessage callback pattern
+// Helper to simulate browser.runtime.sendMessage callback pattern
 function setupChromeMock(response: unknown, error?: string) {
   (globalThis as any).chrome = {
     offscreen: {
@@ -34,9 +34,9 @@ function setupChromeMock(response: unknown, error?: string) {
     runtime: {
       sendMessage: vi.fn((_msg: unknown, callback: (response: unknown) => void) => {
         if (error) {
-          (globalThis as any).chrome.runtime.lastError = { message: error };
+          (globalThis as any).browser.runtime.lastError = { message: error };
         } else {
-          (globalThis as any).chrome.runtime.lastError = undefined;
+          (globalThis as any).browser.runtime.lastError = undefined;
         }
         callback(response);
       }),
@@ -264,16 +264,16 @@ describe('SqliteClient — unit tests', () => {
       await client.ensureOffscreenDocument();
       await client.ensureOffscreenDocument(); // Second call should be skipped
 
-      expect((globalThis as any).chrome.offscreen.hasDocument).toHaveBeenCalledTimes(1);
+      expect((globalThis as any).browser.offscreen.hasDocument).toHaveBeenCalledTimes(1);
     });
 
     it('creates document if not exists', async () => {
       setupChromeMock({ success: true });
-      (globalThis as any).chrome.offscreen.hasDocument.mockResolvedValue(false);
+      (globalThis as any).browser.offscreen.hasDocument.mockResolvedValue(false);
 
       await client.ensureOffscreenDocument();
 
-      expect((globalThis as any).chrome.offscreen.createDocument).toHaveBeenCalled();
+      expect((globalThis as any).browser.offscreen.createDocument).toHaveBeenCalled();
     });
   });
 });

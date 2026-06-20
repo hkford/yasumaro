@@ -10,24 +10,24 @@ function makeMessage(type: string, payload?: Record<string, unknown>) {
 
 describe('handleOffscreenMessage - routing', () => {
     it('ignores non-object messages', () => {
-        const result = handleOffscreenMessage('string', {} as chrome.runtime.MessageSender, noop);
+        const result = handleOffscreenMessage('string', {} as browser.runtime.MessageSender, noop);
         expect(result).toBe(false);
     });
 
     it('ignores null messages', () => {
-        const result = handleOffscreenMessage(null, {} as chrome.runtime.MessageSender, noop);
+        const result = handleOffscreenMessage(null, {} as browser.runtime.MessageSender, noop);
         expect(result).toBe(false);
     });
 
     it('ignores messages without target field', () => {
-        const result = handleOffscreenMessage({ type: 'CHECK_AVAILABILITY' }, {} as chrome.runtime.MessageSender, noop);
+        const result = handleOffscreenMessage({ type: 'CHECK_AVAILABILITY' }, {} as browser.runtime.MessageSender, noop);
         expect(result).toBe(false);
     });
 
     it('ignores messages targeted at other components', () => {
         const result = handleOffscreenMessage(
             { target: 'background', type: 'CHECK_AVAILABILITY' },
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             noop
         );
         expect(result).toBe(false);
@@ -36,7 +36,7 @@ describe('handleOffscreenMessage - routing', () => {
     it('returns true for offscreen-targeted messages to keep channel open', () => {
         const result = handleOffscreenMessage(
             makeMessage('CHECK_AVAILABILITY'),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             noop
         );
         expect(result).toBe(true);
@@ -52,7 +52,7 @@ describe('handleOffscreenMessage - CHECK_AVAILABILITY', () => {
         const responses: unknown[] = [];
         handleOffscreenMessage(
             makeMessage('CHECK_AVAILABILITY'),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             (r) => responses.push(r)
         );
         await vi.waitFor(() => expect(responses.length).toBe(1));
@@ -71,7 +71,7 @@ describe('handleOffscreenMessage - CHECK_AVAILABILITY', () => {
         const responses: unknown[] = [];
         handleOffscreenMessage(
             makeMessage('CHECK_AVAILABILITY'),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             (r) => responses.push(r)
         );
         await vi.waitFor(() => expect(responses.length).toBe(1));
@@ -90,7 +90,7 @@ describe('handleOffscreenMessage - CHECK_AVAILABILITY', () => {
         const responses: unknown[] = [];
         handleOffscreenMessage(
             makeMessage('CHECK_AVAILABILITY'),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             (r) => responses.push(r)
         );
         await vi.waitFor(() => expect(responses.length).toBe(1));
@@ -107,7 +107,7 @@ describe('handleOffscreenMessage - SUMMARIZE', () => {
         const responses: unknown[] = [];
         handleOffscreenMessage(
             makeMessage('SUMMARIZE', {}),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             (r) => responses.push(r)
         );
         await vi.waitFor(() => expect(responses.length).toBe(1));
@@ -120,7 +120,7 @@ describe('handleOffscreenMessage - SUMMARIZE', () => {
         const responses: unknown[] = [];
         handleOffscreenMessage(
             makeMessage('SUMMARIZE', { content: 'test content' }),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             (r) => responses.push(r)
         );
         await vi.waitFor(() => expect(responses.length).toBe(1));
@@ -141,7 +141,7 @@ describe('handleOffscreenMessage - SUMMARIZE', () => {
         const responses: unknown[] = [];
         handleOffscreenMessage(
             makeMessage('SUMMARIZE', { content: 'test content' }),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             (r) => responses.push(r)
         );
         await vi.waitFor(() => expect(responses.length).toBe(1));
@@ -166,7 +166,7 @@ describe('handleOffscreenMessage - SUMMARIZE', () => {
         const responses: unknown[] = [];
         handleOffscreenMessage(
             makeMessage('SUMMARIZE', { content: 'page content to summarize' }),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             (r) => responses.push(r)
         );
         await vi.waitFor(() => expect(responses.length).toBe(1));
@@ -191,7 +191,7 @@ describe('handleOffscreenMessage - SUMMARIZE', () => {
         const responses: unknown[] = [];
         handleOffscreenMessage(
             makeMessage('SUMMARIZE', { content: longContent }),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             (r) => responses.push(r)
         );
         await vi.waitFor(() => expect(responses.length).toBe(1));
@@ -205,7 +205,7 @@ describe('handleOffscreenMessage - unknown type', () => {
         const responses: unknown[] = [];
         handleOffscreenMessage(
             makeMessage('UNKNOWN_TYPE'),
-            {} as chrome.runtime.MessageSender,
+            {} as browser.runtime.MessageSender,
             (r) => responses.push(r)
         );
         await vi.waitFor(() => expect(responses.length).toBe(1));

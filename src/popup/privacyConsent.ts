@@ -25,7 +25,7 @@ export interface PrivacyConsentState {
  */
 export async function getPrivacyConsent(): Promise<PrivacyConsentState> {
     try {
-        const result = await chrome.storage.local.get(StorageKeys.PRIVACY_CONSENT);
+        const result = await browser.storage.local.get(StorageKeys.PRIVACY_CONSENT);
         const consentValue = result[StorageKeys.PRIVACY_CONSENT];
 
         // レガシー形式（ブール値）の処理
@@ -74,7 +74,7 @@ export async function savePrivacyConsent(version: string = PRIVACY_POLICY_VERSIO
             consentVersion: version
         };
 
-        await chrome.storage.local.set({ [StorageKeys.PRIVACY_CONSENT]: data });
+        await browser.storage.local.set({ [StorageKeys.PRIVACY_CONSENT]: data });
         await logInfo(
             'Privacy consent saved',
             { version, date: data.consentDate },
@@ -117,7 +117,7 @@ export async function requireConsent(): Promise<void> {
 export async function migrateLegacyPrivacyConsent(): Promise<boolean> {
     try {
         // 単一のストレージ呼び出しで同意状態とプライバシー機能使用状況を取得
-        const result = await chrome.storage.local.get([
+        const result = await browser.storage.local.get([
             StorageKeys.PRIVACY_CONSENT,
             StorageKeys.PRIVACY_MODE,
             StorageKeys.PII_CONFIRMATION_UI,
@@ -187,7 +187,7 @@ export async function withdrawPrivacyConsent(): Promise<PrivacyConsentWithdrawal
             withdrawal
         };
 
-        await chrome.storage.local.set({ [StorageKeys.PRIVACY_CONSENT]: withdrawnState });
+        await browser.storage.local.set({ [StorageKeys.PRIVACY_CONSENT]: withdrawnState });
         await logInfo('Privacy consent withdrawn', { withdrawalDate: withdrawal.withdrawalDate }, 'privacyConsent.ts');
         return withdrawal;
     } catch (error) {
@@ -199,7 +199,7 @@ export async function withdrawPrivacyConsent(): Promise<PrivacyConsentWithdrawal
 /**
  * 同意撤回履歴を取得 */
 export async function getConsentWithdrawalHistory(): Promise<PrivacyConsentWithdrawal | null> {
-    const result = await chrome.storage.local.get(StorageKeys.PRIVACY_CONSENT);
+    const result = await browser.storage.local.get(StorageKeys.PRIVACY_CONSENT);
     const data = result[StorageKeys.PRIVACY_CONSENT];
     if (typeof data === 'object' && data !== null && 'withdrawal' in data) {
         return (data as Record<string, unknown>).withdrawal as PrivacyConsentWithdrawal;

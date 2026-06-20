@@ -43,8 +43,8 @@ export interface UblockRule {
 export interface UblockRules {
     blockDomains: string[];
     exceptionDomains: string[];
-    blockRules?: UblockRule[];      // 古い形式との互換性（ublockMatcher.ts 用）
-    exceptionRules?: UblockRule[];  // 古い形式との互換性（ublockMatcher.ts 用）
+    blockRules?: (UblockRule | string)[];      // 古い形式との互換性、または軽量なドメイン配列
+    exceptionRules?: (UblockRule | string)[];  // 古い形式との互換性、または軽量なドメイン配列
     metadata?: {
         importedAt: number;
         ruleCount: number;

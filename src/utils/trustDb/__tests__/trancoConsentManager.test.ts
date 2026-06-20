@@ -19,7 +19,7 @@ afterAll(() => {
   vi.useRealTimers();
 });
 
-// Mock chrome.storage.local
+// Mock browser.storage.local
 const mockStorage = new Map<string, any>();
 
 const mockChromeStorage = {
@@ -62,7 +62,7 @@ describe('TrancoConsentManager', () => {
     mockStorage.clear();
     vi.setSystemTime(new Date('2026-03-26'));
 
-    // Mock chrome.storage.local.get to handle array keys correctly
+    // Mock browser.storage.local.get to handle array keys correctly
     mockChromeStorage.local.get.mockImplementation(async (keys) => {
       const result: Record<string, any> = {};
       if (Array.isArray(keys)) {

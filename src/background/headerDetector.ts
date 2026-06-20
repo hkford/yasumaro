@@ -12,13 +12,13 @@ export class HeaderDetector {
    * webRequest.onHeadersReceivedリスナーを初期化する
    */
   static async initialize(): Promise<void> {
-    if (!chrome.webRequest) {
+    if (!browser.webRequest) {
       await logError('webRequest API not available', { source: 'headerDetector' }, ErrorCode.UNKNOWN_ERROR);
       return;
     }
 
     try {
-      chrome.webRequest.onHeadersReceived.addListener(
+      browser.webRequest.onHeadersReceived.addListener(
         HeaderDetector.onHeadersReceived,
         {
           urls: ['<all_urls>'],
@@ -55,7 +55,7 @@ export class HeaderDetector {
   /**
    * HTTPレスポンスヘッダーを受信した際の処理
    */
-  private static onHeadersReceived(details: chrome.webRequest.OnHeadersReceivedDetails): chrome.webRequest.BlockingResponse | undefined {
+  private static onHeadersReceived(details: browser.webRequest.OnHeadersReceivedDetails): browser.webRequest.BlockingResponse | undefined {
     // 【注意】webRequest.onHeadersReceived は同期コールバックのため async 関数にできない
     // URLハッシュ化にはcrypto APIが必要なため、即時実行の非同期関数を経由してログ出力を行う
     (async () => {
@@ -72,7 +72,7 @@ export class HeaderDetector {
 
       // Content-Typeチェック（HTMLのみ）
       const contentType = details.responseHeaders?.find(
-        (h: chrome.webRequest.HttpHeader) => h.name?.toLowerCase() === 'content-type'
+        (h: browser.webRequest.HttpHeader) => h.name?.toLowerCase() === 'content-type'
       );
       (async () => await logDebug('Content-Type check', { contentType: contentType?.value || 'unknown', source: 'headerDetector' }))();
 
@@ -150,10 +150,10 @@ export class HeaderDetector {
     RecordingLogic.scheduleCacheSave();
 
     // Service Worker 再起動後もプライバシー情報を失わないよう session storage にも保存
-    // chrome.storage.session はブラウザセッション中は永続 (SW 再起動をまたいでも保持される)
-    if (chrome.storage.session) {
+    // browser.storage.session はブラウザセッション中は永続 (SW 再起動をまたいでも保持される)
+    if (browser.storage.session) {
       const sessionKey = 'privacyCache_' + normalizedUrl;
-      chrome.storage.session.set({ [sessionKey]: info }).catch(() => {
+      browser.storage.session.set({ [sessionKey]: info }).catch(() => {
         // session storage エラーは握りつぶす（インメモリが主、sessionは補助）
       });
     }
@@ -162,8 +162,8 @@ export class HeaderDetector {
     // tabId=-1はバックグラウンドリクエストのためスキップ
     if (tabId !== undefined && tabId >= 0 && info.isPrivate) {
       try {
-        await chrome.action.setBadgeText({ text: '!', tabId });
-        await chrome.action.setBadgeBackgroundColor({ color: BADGE_COLORS.ORANGE as string, tabId });
+        await browser.action.setBadgeText({ text: '!', tabId });
+        await browser.action.setBadgeBackgroundColor({ color: BADGE_COLORS.ORANGE as string, tabId });
       } catch (error) {
         logError('Failed to set privacy badge', {
           tabId,

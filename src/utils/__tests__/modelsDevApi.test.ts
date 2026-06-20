@@ -94,7 +94,7 @@ describe('modelsDevApi', () => {
     beforeEach(() => {
       vi.stubGlobal('chrome', {
         runtime: {
-          getURL: vi.fn((path: string) => `chrome-extension://test-id/${path}`),
+          getURL: vi.fn((path: string) => `browser-extension://test-id/${path.startsWith('/') ? path.substring(1) : path}`),
         },
       });
     });
@@ -143,8 +143,8 @@ describe('modelsDevApi', () => {
       const result = await loadModelsDevData();
 
       expect(result).toEqual(mockData);
-      expect(chrome.runtime.getURL).toHaveBeenCalledWith(
-        'data/models-dev-openai-compatible.json'
+      expect((globalThis as any).chrome.runtime.getURL).toHaveBeenCalledWith(
+        '/data/models-dev-openai-compatible.json'
       );
     });
 

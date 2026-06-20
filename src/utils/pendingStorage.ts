@@ -15,12 +15,12 @@ export interface PendingPage {
 const PENDING_PAGES_KEY = 'osh_pending_pages';
 
 /**
- * Retrieves the list of pending pages directly from chrome.storage.local.
+ * Retrieves the list of pending pages directly from browser.storage.local.
  * @returns Promise resolving to an array of PendingPage objects, or an empty array if none exist.
  */
 async function getPendingPagesList(): Promise<PendingPage[]> {
   try {
-    const result = await chrome.storage.local.get(PENDING_PAGES_KEY);
+    const result = await browser.storage.local.get(PENDING_PAGES_KEY);
     return (result[PENDING_PAGES_KEY] as PendingPage[]) || [];
   } catch (error) {
     await logError(
@@ -54,7 +54,7 @@ export async function addPendingPage(page: PendingPage): Promise<void> {
 
     const updatedPages = [...pages, page];
 
-    await chrome.storage.local.set({ [PENDING_PAGES_KEY]: updatedPages });
+    await browser.storage.local.set({ [PENDING_PAGES_KEY]: updatedPages });
     await logDebug('Pending page saved', { newCount: updatedPages.length, source: 'pendingStorage' });
   } catch (error) {
     await logError(
@@ -95,7 +95,7 @@ export async function removePendingPages(urls: string[]): Promise<void> {
     const urlSet = new Set(urls);
     const updatedPages = pages.filter(p => !urlSet.has(p.url));
 
-    await chrome.storage.local.set({ [PENDING_PAGES_KEY]: updatedPages });
+    await browser.storage.local.set({ [PENDING_PAGES_KEY]: updatedPages });
   } catch (error) {
     await logError(
       'Failed to remove pending pages',
@@ -114,7 +114,7 @@ export async function clearExpiredPages(): Promise<void> {
     const pages = await getPendingPagesList();
     const updatedPages = pages.filter(p => p.expiry > Date.now());
 
-    await chrome.storage.local.set({ [PENDING_PAGES_KEY]: updatedPages });
+    await browser.storage.local.set({ [PENDING_PAGES_KEY]: updatedPages });
   } catch (error) {
     await logError(
       'Failed to clear expired pages',

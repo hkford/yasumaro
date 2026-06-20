@@ -45,7 +45,7 @@ describe('i18n', () => {
     });
 
     it('getUserLocaleがlocaleUtilsから取り込まれていること', () => {
-      global.chrome.i18n.getUILanguage.mockReturnValue('ja-JP');
+      global.browser.i18n.getUILanguage.mockReturnValue('ja-JP');
       const result = getUserLocale();
       expect(result).toBe('ja-JP');
     });
@@ -68,13 +68,13 @@ describe('i18n', () => {
     });
 
     it('置換パラメータなしの呼び出しで正しく動作する', () => {
-      global.chrome.i18n.getMessage.mockReturnValue('Test Message');
+      global.browser.i18n.getMessage.mockReturnValue('Test Message');
       const result = getMessage('testKey');
       expect(result).toBe('Test Message');
     });
 
     it('配列形式の置換パラメータはそのまま返す', () => {
-      global.chrome.i18n.getMessage.mockReturnValue('Test Message');
+      global.browser.i18n.getMessage.mockReturnValue('Test Message');
       const result = getMessage('testKey', ['arg1', 'arg2']);
       expect(result).toBe('Test Message');
     });
@@ -164,7 +164,7 @@ describe('i18n', () => {
     });
 
     it('select内のoption[data-i18n-opt]を翻訳する', () => {
-      global.chrome.i18n.getMessage.mockImplementation((key: string) => {
+      global.browser.i18n.getMessage.mockImplementation((key: string) => {
         if (key === 'optionLabel') return 'Translated Option';
         return '';
       });
@@ -181,7 +181,7 @@ describe('i18n', () => {
     });
 
     it('[data-i18n-label]ボタンのtextContentを翻訳する', () => {
-      global.chrome.i18n.getMessage.mockImplementation((key: string) => {
+      global.browser.i18n.getMessage.mockImplementation((key: string) => {
         if (key === 'btnLabel') return 'Click Me';
         return '';
       });
@@ -196,7 +196,7 @@ describe('i18n', () => {
     });
 
     it('.help-text[data-i18n]を翻訳する', () => {
-      global.chrome.i18n.getMessage.mockImplementation((key: string) => {
+      global.browser.i18n.getMessage.mockImplementation((key: string) => {
         if (key === 'helpMsg') return 'Help text here';
         return '';
       });
@@ -255,7 +255,7 @@ describe('i18n', () => {
     });
 
     it('日本語ロケールでlangとdirを設定する', () => {
-      global.chrome.i18n.getUILanguage.mockReturnValue('ja-JP');
+      global.browser.i18n.getUILanguage.mockReturnValue('ja-JP');
       setHtmlLangAndDir();
 
       expect(document.documentElement.lang).toBe('ja-JP');
@@ -263,7 +263,7 @@ describe('i18n', () => {
     });
 
     it('アラビア語ロケールでlangとdirを設定する', () => {
-      global.chrome.i18n.getUILanguage.mockReturnValue('ar-EG');
+      global.browser.i18n.getUILanguage.mockReturnValue('ar-EG');
       setHtmlLangAndDir();
 
       expect(document.documentElement.lang).toBe('ar-EG');
@@ -271,7 +271,7 @@ describe('i18n', () => {
     });
 
     it('英語ロケールでlangとdirを設定する', () => {
-      global.chrome.i18n.getUILanguage.mockReturnValue('en-US');
+      global.browser.i18n.getUILanguage.mockReturnValue('en-US');
       setHtmlLangAndDir();
 
       expect(document.documentElement.lang).toBe('en-US');
@@ -279,7 +279,7 @@ describe('i18n', () => {
     });
 
     it('RTL言語でdirがrtlになる', () => {
-      global.chrome.i18n.getUILanguage.mockReturnValue('he');
+      global.browser.i18n.getUILanguage.mockReturnValue('he');
       setHtmlLangAndDir();
 
       expect(document.documentElement.lang).toBe('he');
@@ -298,7 +298,7 @@ describe('i18n', () => {
 
   describe('縮合テスト', () => {
     it('getUserLocaleとgetMessageを kombinatして使用する', () => {
-      global.chrome.i18n.getUILanguage.mockReturnValue('ja-JP');
+      global.browser.i18n.getUILanguage.mockReturnValue('ja-JP');
       const locale = getUserLocale();
       expect(locale).toBe('ja-JP');
 

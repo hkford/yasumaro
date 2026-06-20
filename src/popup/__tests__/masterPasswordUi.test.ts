@@ -814,7 +814,7 @@ describe('masterPasswordUi', () => {
         expect(globalThis.confirm).toHaveBeenCalled();
       }, WAIT);
 
-      expect(chrome.storage.local.remove).toHaveBeenCalledWith([
+      expect(browser.storage.local.remove).toHaveBeenCalledWith([
         'master_password_enabled',
         'master_password_salt',
         'master_password_hash',
@@ -917,7 +917,7 @@ describe('masterPasswordUi', () => {
 
       await new Promise((r) => setTimeout(r, 50));
 
-      expect(chrome.storage.local.remove).not.toHaveBeenCalled();
+      expect(browser.storage.local.remove).not.toHaveBeenCalled();
       expect(cb.checked).toBe(true);
 
       globalThis.confirm = origConfirm;

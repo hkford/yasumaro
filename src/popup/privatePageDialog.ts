@@ -16,7 +16,7 @@ function showPrivatePageDialog(url: string, reason: string, headerValue: string)
 
   if (messageEl) {
     const header = headerValue || reason;
-    messageEl.textContent = chrome.i18n.getMessage('warningPrivatePageMessage', [header, url]);
+    messageEl.textContent = browser.i18n.getMessage('warningPrivatePageMessage', [header, url]);
   }
 
   dialog?.showModal();
@@ -25,7 +25,7 @@ function showPrivatePageDialog(url: string, reason: string, headerValue: string)
 async function recordWithForce(): Promise<void> {
   if (!currentPendingSave) return;
 
-  const response = await chrome.runtime.sendMessage({
+  const response = await browser.runtime.sendMessage({
     type: 'record',
     data: {
       title: currentPendingSave.title,

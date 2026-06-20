@@ -3,6 +3,7 @@
  * ダッシュボードページのメイン初期化モジュール
  * popup.ts の設定ロジックを流用し、フルページダッシュボードとして動作する
  */
+console.log('%c[Yasumaro] Dashboard UI initializing...', 'color: #34c759; font-weight: bold;');
 
 import { StorageKeys, getSettings, saveSettingsWithAllowedUrls } from '../utils/storage.js';
 import { init as initDomainFilter } from '../popup/domainFilter.js';
@@ -320,14 +321,14 @@ export function createConnectionStatusElement(label: string, result: { success: 
 
 export async function testObsidianConnection(apiKey: string): Promise<{ success: boolean; message: string }> {
   const el = getDashboardElements();
-  const testResult = await chrome.runtime.sendMessage({
+  const testResult = await browser.runtime.sendMessage({
     type: 'TEST_OBSIDIAN',
     payload: apiKey
       ? {
-          protocol: el.protocolInput?.value?.trim(),
-          port: el.portInput?.value?.trim(),
-          apiKey: apiKey,
-        }
+        protocol: el.protocolInput?.value?.trim(),
+        port: el.portInput?.value?.trim(),
+        apiKey: apiKey,
+      }
       : {}
   }) as { obsidian?: { success: boolean; message: string } };
 
@@ -335,7 +336,7 @@ export async function testObsidianConnection(apiKey: string): Promise<{ success:
 }
 
 export async function testAiConnection(): Promise<{ success: boolean; message: string }> {
-  const testResult = await chrome.runtime.sendMessage({
+  const testResult = await browser.runtime.sendMessage({
     type: 'TEST_AI',
     payload: {}
   }) as { ai?: { success: boolean; message: string } };
@@ -452,7 +453,7 @@ export async function handlePurgeNow(): Promise<void> {
   el.purgeNowBtn.disabled = true;
   statusEl.textContent = '';
   try {
-    const result = await chrome.runtime.sendMessage({
+    const result = await browser.runtime.sendMessage({
       type: 'DASHBOARD_SQLITE',
       payload: { subtype: 'purge_now' },
     }) as { success: boolean; purged: number; skipped?: boolean; error?: string } | undefined;
@@ -487,7 +488,7 @@ function getBreakingChangesElements() {
 
 async function showBreakingChangesModal(): Promise<void> {
   // 既に表示済みの場合はスキップ
-  const shown = await chrome.storage.local.get(BREAKING_CHANGES_SHOWN_KEY).then(result => result[BREAKING_CHANGES_SHOWN_KEY]);
+  const shown = await browser.storage.local.get(BREAKING_CHANGES_SHOWN_KEY).then(result => result[BREAKING_CHANGES_SHOWN_KEY]);
   if (shown) return;
 
   const { modal, dismissBtn, closeBtn } = getBreakingChangesElements();
@@ -518,7 +519,7 @@ async function closeBreakingChangesModal(): Promise<void> {
   }
 
   // 表示済みとして記録
-  await chrome.storage.local.set({ [BREAKING_CHANGES_SHOWN_KEY]: true });
+  await browser.storage.local.set({ [BREAKING_CHANGES_SHOWN_KEY]: true });
 }
 
 // ============================================================================
@@ -526,7 +527,7 @@ async function closeBreakingChangesModal(): Promise<void> {
 // ============================================================================
 
 export function setHtmlLangDir(): void {
-  const locale = chrome.i18n.getUILanguage();
+  const locale = browser.i18n.getUILanguage();
   const langCode = locale.split('-')[0];
   document.documentElement.lang = locale;
   const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'ku', 'yi', 'dv'];
@@ -534,36 +535,36 @@ export function setHtmlLangDir(): void {
 }
 
 async function initConsentWithdrawal(): Promise<void> {
-    const display = document.getElementById('consentStatusDisplay');
-    const btn = document.getElementById('btnWithdrawConsent');
-    const statusEl = document.getElementById('withdrawConsentStatus');
+  const display = document.getElementById('consentStatusDisplay');
+  const btn = document.getElementById('btnWithdrawConsent');
+  const statusEl = document.getElementById('withdrawConsentStatus');
 
-    const state = await getPrivacyConsent();
-    if (display) {
-        display.textContent = state.hasConsented
-            ? chrome.i18n.getMessage('consented') || `Consented (${state.consentDate || ''})`
-            : chrome.i18n.getMessage('notConsented') || 'Not consented';
-    }
-    if (btn) {
-        btn.classList.toggle('hidden', !state.hasConsented);
-    }
-    if (btn) {
-        btn.addEventListener('click', async () => {
-            const ok = await withdrawPrivacyConsent();
-            if (statusEl) {
-                statusEl.textContent = ok
-                    ? 'Consent withdrawn. Recording will stop.'
-                    : 'Failed to withdraw consent.';
-                statusEl.style.color = ok ? 'var(--color-success-text)' : 'var(--color-error)';
-            }
-            if (display) {
-                display.textContent = 'Not consented';
-            }
-            if (btn) {
-                btn.classList.add('hidden');
-            }
-        });
-    }
+  const state = await getPrivacyConsent();
+  if (display) {
+    display.textContent = state.hasConsented
+      ? browser.i18n.getMessage('consented') || `Consented (${state.consentDate || ''})`
+      : browser.i18n.getMessage('notConsented') || 'Not consented';
+  }
+  if (btn) {
+    btn.classList.toggle('hidden', !state.hasConsented);
+  }
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      const ok = await withdrawPrivacyConsent();
+      if (statusEl) {
+        statusEl.textContent = ok
+          ? 'Consent withdrawn. Recording will stop.'
+          : 'Failed to withdraw consent.';
+        statusEl.style.color = ok ? 'var(--color-success-text)' : 'var(--color-error)';
+      }
+      if (display) {
+        display.textContent = 'Not consented';
+      }
+      if (btn) {
+        btn.classList.add('hidden');
+      }
+    });
+  }
 }
 
 // ============================================================================
@@ -672,28 +673,28 @@ function initExportLogsPanel(): void {
   // Data erasure button (GDPR Art.17)
   document.getElementById('btnDeleteAllData')?.addEventListener('click', async () => {
     const confirmed = await showConfirmDialog({
-      title: chrome.i18n.getMessage('confirmClearAllTitle') || 'Delete All History',
-      message: chrome.i18n.getMessage('confirmClearAllMessage') || chrome.i18n.getMessage('deleteAllDataConfirm') || 'This will permanently delete all stored data. Continue?',
-      confirmLabel: chrome.i18n.getMessage('confirmDelete') || 'Delete',
-      cancelLabel: chrome.i18n.getMessage('cancel') || 'Cancel',
+      title: browser.i18n.getMessage('confirmClearAllTitle') || 'Delete All History',
+      message: browser.i18n.getMessage('confirmClearAllMessage') || browser.i18n.getMessage('deleteAllDataConfirm') || 'This will permanently delete all stored data. Continue?',
+      confirmLabel: browser.i18n.getMessage('confirmDelete') || 'Delete',
+      cancelLabel: browser.i18n.getMessage('cancel') || 'Cancel',
       dangerous: true,
     });
     if (!confirmed) return;
     try {
-      await chrome.storage.local.clear();
+      await browser.storage.local.clear();
       const sqliteResult = await clearAllLogs();
       if (!sqliteResult) {
         const statusEl = document.getElementById('deleteAllDataStatus');
-        if (statusEl) statusEl.textContent = chrome.i18n.getMessage('deleteAllDataFailed') || 'Failed to clear browsing logs. Please try again.';
+        if (statusEl) statusEl.textContent = browser.i18n.getMessage('deleteAllDataFailed') || 'Failed to clear browsing logs. Please try again.';
         return;
       }
       const statusEl = document.getElementById('deleteAllDataStatus');
-      if (statusEl) statusEl.textContent = chrome.i18n.getMessage('deleteAllDataSuccess');
+      if (statusEl) statusEl.textContent = browser.i18n.getMessage('deleteAllDataSuccess');
       setTimeout(() => window.location.reload(), 2000);
     } catch (e) {
       console.error('[Dashboard] Failed to delete all data:', e);
       const statusEl = document.getElementById('deleteAllDataStatus');
-      if (statusEl) statusEl.textContent = chrome.i18n.getMessage('deleteAllDataFailed') || 'Failed to delete all data. Please try again.';
+      if (statusEl) statusEl.textContent = browser.i18n.getMessage('deleteAllDataFailed') || 'Failed to delete all data. Please try again.';
     }
   });
 

@@ -147,7 +147,7 @@ export async function checkPageStatus(url: string): Promise<StatusInfo | null> {
     type PrivacyInfo = { isPrivate?: boolean; reason?: 'cache-control' | 'set-cookie' | 'authorization'; headers?: { cacheControl?: string; hasCookie?: boolean; hasAuth?: boolean } };
     let privacyInfo: PrivacyInfo | null = null;
     try {
-      const response = await chrome.runtime.sendMessage({ type: 'GET_PRIVACY_CACHE' });
+      const response = await browser.runtime.sendMessage({ type: 'GET_PRIVACY_CACHE' });
       await logDebug('Privacy cache response', { success: response?.success, cacheSize: response?.cache?.length, source: 'statusChecker' });
 
       if (response && response.success && response.cache) {

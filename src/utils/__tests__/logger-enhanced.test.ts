@@ -229,7 +229,7 @@ describe('Logger - Enhanced Coverage', () => {
             };
 
             // Set old log in storage
-            await chrome.storage.local.set({ sanitization_logs: [oldLog] });
+            await browser.storage.local.set({ sanitization_logs: [oldLog] });
 
             // Add a new log and flush
             await logger.addLog('INFO', 'New log', {});
@@ -286,16 +286,16 @@ describe('Logger - Enhanced Coverage', () => {
 
     describe('addLog Error Handling', () => {
         test('エラー発生時もクラッシュしない', async () => {
-            // Temporarily break chrome.storage to trigger error path
-            const originalSet = chrome.storage.local.set;
-            (chrome.storage.local as any).set = vi.fn(() => Promise.reject(new Error('Storage error')));
+            // Temporarily break browser.storage to trigger error path
+            const originalSet = browser.storage.local.set;
+            (browser.storage.local as any).set = vi.fn(() => Promise.reject(new Error('Storage error')));
 
             // Should not throw
             await logger.addLog('INFO', 'Error test', {});
             await logger.flushLogs(true);
 
             // Restore
-            (chrome.storage.local as any).set = originalSet;
+            (browser.storage.local as any).set = originalSet;
         });
     });
 

@@ -14,8 +14,8 @@ vi.mock('../privacyPipeline.js');
 // Chrome notifications mock
 beforeEach(() => {
   vi.clearAllMocks();
-  if (!chrome.notifications) {
-    chrome.notifications = { create: vi.fn() };
+  if (!browser.notifications) {
+    browser.notifications = { create: vi.fn() };
   }
   // storageのデフォルトモック
     // @ts-expect-error - vi.fn() type narrowing issue
@@ -111,7 +111,7 @@ describe('Recording Integration Test', () => {
 
     expect(result.success).toBe(true);
     expect(mockObsidian.appendToDailyNote).toHaveBeenCalled();
-    expect(chrome.notifications.create).toHaveBeenCalled();
+    expect(browser.notifications.create).toHaveBeenCalled();
   });
 
   it('should handle force recording for blocked domains', async () => {

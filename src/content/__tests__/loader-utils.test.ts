@@ -6,8 +6,8 @@ describe('shouldSkipUrl', () => {
         expect(shouldSkipUrl('chrome://extensions/')).toBe(true);
     });
 
-    it('returns true for chrome-extension:// URLs', () => {
-        expect(shouldSkipUrl('chrome-extension://abcdef/popup.html')).toBe(true);
+    it('returns true for browser-extension:// URLs', () => {
+        expect(shouldSkipUrl('browser-extension://abcdef/popup.html')).toBe(true);
     });
 
     it('returns true for about:blank', () => {

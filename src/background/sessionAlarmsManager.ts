@@ -1,6 +1,6 @@
 /**
  * sessionAlarmsManager.ts
- * セッションタイムアウト管理 (chrome.alarms API)
+ * セッションタイムアウト管理 (browser.alarms API)
  * Service Worker環境対応
  */
 
@@ -19,7 +19,7 @@ const STORAGE_KEY_LAST_ACTIVITY = 'session_last_activity';
  */
 export async function updateActivity(): Promise<void> {
     try {
-        await chrome.storage.local.set({
+        await browser.storage.local.set({
             [STORAGE_KEY_LAST_ACTIVITY]: Date.now()
         });
     } catch (error) {
@@ -38,10 +38,10 @@ export async function updateActivity(): Promise<void> {
 export async function startTimeoutChecker(): Promise<void> {
     try {
         // 既存のアラームをクリア
-        await chrome.alarms.clear(ALARM_NAME_CHECK_SESSION);
+        await browser.alarms.clear(ALARM_NAME_CHECK_SESSION);
 
         // SESSION_CHECK_INTERVAL_MINUTES 間隔でアラーム作成（バッテリー効率化）
-        await chrome.alarms.create(ALARM_NAME_CHECK_SESSION, {
+        await browser.alarms.create(ALARM_NAME_CHECK_SESSION, {
             periodInMinutes: SESSION_CHECK_INTERVAL_MINUTES
         });
 
@@ -68,7 +68,7 @@ export async function startTimeoutChecker(): Promise<void> {
  */
 export async function stopTimeoutChecker(): Promise<void> {
     try {
-        await chrome.alarms.clear(ALARM_NAME_CHECK_SESSION);
+        await browser.alarms.clear(ALARM_NAME_CHECK_SESSION);
         await logInfo(
             'Session timeout checker stopped',
             { alarmName: ALARM_NAME_CHECK_SESSION },
@@ -89,7 +89,7 @@ export async function stopTimeoutChecker(): Promise<void> {
  */
 async function checkTimeout(): Promise<void> {
     try {
-        const result = await chrome.storage.local.get(STORAGE_KEY_LAST_ACTIVITY);
+        const result = await browser.storage.local.get(STORAGE_KEY_LAST_ACTIVITY);
         const lastActivity = result[STORAGE_KEY_LAST_ACTIVITY] as number;
 
         if (!lastActivity) {
@@ -125,10 +125,10 @@ async function lockSession(): Promise<void> {
     try {
         // storage.tsのlockSessionをエクスポートして使用するか、
         // 直接ロック処理を実装
-        await chrome.storage.local.set({ [StorageKeys.IS_LOCKED]: true });
+        await browser.storage.local.set({ [StorageKeys.IS_LOCKED]: true });
         // マスターパスワードキャッシュはstorage.tsで管理されるため、
         // 通知メッセージを送信してstorage.tsにロックをさせる
-        chrome.runtime.sendMessage({ type: 'SESSION_LOCK_REQUEST' }).catch(() => {
+        browser.runtime.sendMessage({ type: 'SESSION_LOCK_REQUEST' }).catch(() => {
             // 送信失敗は無視
         });
     } catch (error) {
@@ -150,13 +150,13 @@ function setupAlarmListener(): void {
         return;
     }
 
-    const listener = (alarm: chrome.alarms.Alarm) => {
+    const listener = (alarm: browser.alarms.Alarm) => {
         if (alarm.name === ALARM_NAME_CHECK_SESSION) {
             checkTimeout();
         }
     };
 
-    chrome.alarms.onAlarm.addListener(listener);
+    browser.alarms.onAlarm.addListener(listener);
     alarmListenerSetUp = true;
 }
 

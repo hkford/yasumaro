@@ -20,7 +20,7 @@ beforeEach(() => {
   Object.keys(mockStorage).forEach(key => delete mockStorage[key]);
   resetConflictStats();
 
-  // chrome.storage.local モック
+  // browser.storage.local モック
   mockGet.mockImplementation((keys: string | string[]) => {
     const keyArray = Array.isArray(keys) ? keys : [keys];
     const result: Record<string, any> = {};

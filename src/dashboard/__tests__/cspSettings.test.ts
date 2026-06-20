@@ -486,13 +486,13 @@ describe('CSPSettings', () => {
       const result = await CSPSettings.requestProviderPermission('nonexistent');
 
       expect(result).toBe(false);
-      expect(chrome.permissions.request).not.toHaveBeenCalled();
+      expect(browser.permissions.request).not.toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     test('should handle permission request error', async () => {
       (CSPValidator.getProviderDomain as vi.Mock).mockReturnValue('api-inference.huggingface.co');
-      (chrome.permissions.request as vi.Mock).mockRejectedValue(new Error('Permission denied'));
+      (browser.permissions.request as vi.Mock).mockRejectedValue(new Error('Permission denied'));
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const result = await CSPSettings.requestProviderPermission('huggingface');
@@ -503,7 +503,7 @@ describe('CSPSettings', () => {
 
     test('should handle non-true grant value', async () => {
       (CSPValidator.getProviderDomain as vi.Mock).mockReturnValue('api-inference.huggingface.co');
-      (chrome.permissions.request as vi.Mock).mockResolvedValue(undefined);
+      (browser.permissions.request as vi.Mock).mockResolvedValue(undefined);
 
       const result = await CSPSettings.requestProviderPermission('huggingface');
 
@@ -513,7 +513,7 @@ describe('CSPSettings', () => {
 
   describe('requestEssentialPermission', () => {
     test('should handle permission request error', async () => {
-      (chrome.permissions.request as vi.Mock).mockRejectedValue(new Error('Permission denied'));
+      (browser.permissions.request as vi.Mock).mockRejectedValue(new Error('Permission denied'));
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const result = await CSPSettings.requestEssentialPermission('github-raw');
@@ -528,7 +528,7 @@ describe('CSPSettings', () => {
       const result = await CSPSettings.requestEssentialPermission('unknown-type');
 
       expect(result).toBe(false);
-      expect(chrome.permissions.request).not.toHaveBeenCalled();
+      expect(browser.permissions.request).not.toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
   });
@@ -540,12 +540,12 @@ describe('CSPSettings', () => {
       const result = await CSPSettings.hasPermission('unknown');
 
       expect(result).toBe(false);
-      expect(chrome.permissions.contains).not.toHaveBeenCalled();
+      expect(browser.permissions.contains).not.toHaveBeenCalled();
     });
 
     test('should return false when permission check throws', async () => {
       (CSPValidator.getProviderDomain as vi.Mock).mockReturnValue('api-inference.huggingface.co');
-      (chrome.permissions.contains as vi.Mock).mockRejectedValue(new Error('Check failed'));
+      (browser.permissions.contains as vi.Mock).mockRejectedValue(new Error('Check failed'));
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const result = await CSPSettings.hasPermission('huggingface');
@@ -556,7 +556,7 @@ describe('CSPSettings', () => {
 
     test('should return false when contains returns non-true', async () => {
       (CSPValidator.getProviderDomain as vi.Mock).mockReturnValue('api-inference.huggingface.co');
-      (chrome.permissions.contains as vi.Mock).mockResolvedValue(undefined);
+      (browser.permissions.contains as vi.Mock).mockResolvedValue(undefined);
 
       const result = await CSPSettings.hasPermission('huggingface');
 
@@ -597,18 +597,18 @@ describe('i18n with placeholders', () => {
   });
 
   test('returns message without placeholders', () => {
-    (chrome.i18n.getMessage as vi.Mock).mockReturnValue('Simple message');
+    (browser.i18n.getMessage as vi.Mock).mockReturnValue('Simple message');
     expect(i18n('testKey')).toBe('Simple message');
   });
 
   test('replaces placeholders in message', () => {
-    (chrome.i18n.getMessage as vi.Mock).mockReturnValue('Hello ${name}, you have ${count} items');
+    (browser.i18n.getMessage as vi.Mock).mockReturnValue('Hello ${name}, you have ${count} items');
     const result = i18n('greeting', { name: 'Alice', count: '5' });
     expect(result).toBe('Hello Alice, you have 5 items');
   });
 
   test('handles placeholder with regex special characters', () => {
-    (chrome.i18n.getMessage as vi.Mock).mockReturnValue('Price: ${price}');
+    (browser.i18n.getMessage as vi.Mock).mockReturnValue('Price: ${price}');
     const result = i18n('price', { price: '$100.00' });
     expect(result).toBe('Price: $100.00');
   });

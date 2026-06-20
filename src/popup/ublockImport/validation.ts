@@ -8,7 +8,7 @@
  */
 const DANGEROUS_PROTOCOLS = [
   'javascript:', 'data:', 'vbscript:', 'file:',
-  'chrome:', 'chrome-extension:', 'about:', 'mailto:', 'tel:',
+  'chrome:', 'browser-extension:', 'about:', 'mailto:', 'tel:',
   'sms:', 'fax:', 'blob:', 'content:', 'resource:',
   'eval:', 'script:', 'livescript:', 'ecmascript:', 'mocha:',
   'ws:', 'wss:', 'rtsp:', 'rtp:',

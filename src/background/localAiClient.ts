@@ -7,6 +7,7 @@
 import { addLog, LogType } from '../utils/logger.js';
 import { sanitizePromptContent, DangerLevel } from '../utils/promptSanitizer.js';
 import { errorMessage } from '../utils/errorUtils.js';
+import { handleOffscreenMessage } from '../offscreen/offscreen.js';
 
 const OFFSCREEN_DOCUMENT_PATH = 'offscreen.html';
 const MESSAGE_TIMEOUT_MS = 30000; // 30秒
@@ -41,7 +42,9 @@ export class LocalAIClient {
      * @returns {Promise<void>}
      */
     async ensureOffscreenDocument(): Promise<void> {
-        const hasOffscreen = await chrome.offscreen.hasDocument();
+        if (!browser.offscreen) return;
+
+        const hasOffscreen = await browser.offscreen.hasDocument();
         if (hasOffscreen) return;
 
         if (this.creatingOffscreenPromise) {
@@ -49,10 +52,10 @@ export class LocalAIClient {
             return;
         }
 
-        this.creatingOffscreenPromise = chrome.offscreen.createDocument({
+        this.creatingOffscreenPromise = browser.offscreen.createDocument({
             url: OFFSCREEN_DOCUMENT_PATH,
-            reasons: [chrome.offscreen.Reason.WORKERS], // generic reason for "background work"
-            justification: 'To access the chrome.ai Prompt API which is only available in window context.',
+            reasons: [browser.offscreen.Reason.WORKERS], // generic reason for "background work"
+            justification: 'To access the browser.ai Prompt API which is only available in window context.',
         });
 
         await this.creatingOffscreenPromise;
@@ -64,14 +67,44 @@ export class LocalAIClient {
      */
     async msgOffscreen(type: string, payload: Record<string, unknown> = {}): Promise<OffscreenResponse> {
         await this.ensureOffscreenDocument();
+
+        // Firefox workaround: Handle offscreen messages locally in the background script
+        if (!browser.offscreen) {
+            return new Promise<OffscreenResponse>((resolve, reject) => {
+                const message = { type, target: 'offscreen', payload };
+                const sender = { id: browser.runtime.id };
+                try {
+                    const isAsync = handleOffscreenMessage(
+                        message,
+                        sender as browser.runtime.MessageSender,
+                        (response: unknown) => {
+                            console.log(`[LocalAIClient] Firefox direct handle for ${type}`, { response });
+                            // Serialization check
+                            try {
+                                JSON.stringify(response);
+                            } catch (e) {
+                                console.error('[LocalAIClient] Firefox response NOT serializable', e);
+                            }
+                            resolve(response as OffscreenResponse);
+                        }
+                    );
+                    if (!isAsync) {
+                        reject(new Error(`Offscreen handler for ${type} did not return true (async)`));
+                    }
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
         return new Promise((resolve, reject) => {
-            chrome.runtime.sendMessage({
+            browser.runtime.sendMessage({
                 type,
                 target: 'offscreen',
                 payload
             }, (response: OffscreenResponse) => {
-                if (chrome.runtime.lastError) {
-                    reject(chrome.runtime.lastError);
+                if (browser.runtime.lastError) {
+                    reject(browser.runtime.lastError);
                 } else if (response && response.error) {
                     reject(new Error(response.error));
                 } else {
@@ -151,7 +184,7 @@ export class LocalAIClient {
                 clearTimeout(timeoutId);
             }
 
-            // chrome.runtime.lastErrorはErrorインスタンスではないため専用処理
+            // browser.runtime.lastErrorはErrorインスタンスではないため専用処理
             let errorMessage: string;
             if (error instanceof Error) {
                 errorMessage = error.message;

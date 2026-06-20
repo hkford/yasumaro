@@ -26,7 +26,7 @@ const StorageKeys = {
 // テスト可能な正本は urlSkipper.ts を参照
 const SKIPPED_PROTOCOLS = [
     'chrome://',
-    'chrome-extension://',
+    'browser-extension://',
     'moz-extension://',
     'edge://',
     'about:blank',
@@ -110,7 +110,7 @@ async function checkDomainAllowedFromCache(url: string): Promise<{ allowed: bool
     }
 
     // キャッシュを非同期取得
-    const result = await chrome.storage.local.get([
+    const result = await browser.storage.local.get([
         StorageKeys.DOMAIN_FILTER_CACHE,
         StorageKeys.DOMAIN_FILTER_CACHE_TIMESTAMP,
         StorageKeys.DOMAIN_FILTER_MODE
@@ -143,7 +143,7 @@ async function checkDomainAllowedFromCache(url: string): Promise<{ allowed: bool
     if (mode === 'blacklist') {
         // キャッシュにはホワイトリストデータが入らないため、ブラックリストチェックは別途必要
         // シンプル形式のブラックリストチェックのみキャッシュ実装
-        const result2 = await chrome.storage.local.get([
+        const result2 = await browser.storage.local.get([
             StorageKeys.DOMAIN_BLACKLIST,
             StorageKeys.SIMPLE_FORMAT_ENABLED,
             StorageKeys.UBLOCK_FORMAT_ENABLED
@@ -172,7 +172,7 @@ async function checkDomainAllowedFromCache(url: string): Promise<{ allowed: bool
 }
 
 // 即時実行関数
-if (typeof globalThis.chrome !== 'undefined' && chrome.runtime?.getURL && typeof window !== 'undefined') (async () => {
+if (typeof browser !== 'undefined' && browser.runtime?.getURL && typeof window !== 'undefined') (async () => {
     // 【セキュリティとパフォーマンス最適化】内部スキームには早期リターン
     if (typeof window.location !== 'undefined' && shouldSkipUrl(window.location.href)) {
         return;
@@ -188,7 +188,7 @@ if (typeof globalThis.chrome !== 'undefined' && chrome.runtime?.getURL && typeof
         if (cacheCheck.useCache && !cacheCheck.allowed) {
             return;  // Domain explicitly blocked by filter cache
         }
-        const src = chrome.runtime.getURL('content-extractor.js');
+        const src = browser.runtime.getURL('content-extractor.js');
         try { await import(src); } catch (e) { console.warn('[OWeave] Dynamic import blocked (e2e)', url, _errMsg(e)); }
         return;
     }
@@ -202,7 +202,7 @@ if (typeof globalThis.chrome !== 'undefined' && chrome.runtime?.getURL && typeof
             return;  // 拒否ドメイン → 早期リターン
         }
         // 許可 → extractor を inject
-        const src = chrome.runtime.getURL('content-extractor.js');
+        const src = browser.runtime.getURL('content-extractor.js');
         try { await import(src); } catch (e) { console.warn('[OWeave] Dynamic import blocked', url, _errMsg(e)); }
         return;
     }
@@ -213,7 +213,7 @@ if (typeof globalThis.chrome !== 'undefined' && chrome.runtime?.getURL && typeof
     let lastError: unknown;
     for (let attempt = 0; attempt < 3; attempt++) {
         try {
-            response = await chrome.runtime.sendMessage({ type: 'CHECK_DOMAIN' });
+            response = await browser.runtime.sendMessage({ type: 'CHECK_DOMAIN' });
             if (response) break;
         } catch (e) {
             lastError = e;
@@ -229,7 +229,7 @@ if (typeof globalThis.chrome !== 'undefined' && chrome.runtime?.getURL && typeof
     }
 
     // ビルド後のパスを指定（distディレクトリ内）
-    const src = chrome.runtime.getURL('content-extractor.js');
+    const src = browser.runtime.getURL('content-extractor.js');
     try { await import(src); } catch (e) { console.warn('[OWeave] Dynamic import blocked', url, _errMsg(e)); }
 })();
 

@@ -26,7 +26,7 @@ export async function loadCurrentTab(): Promise<void> {
   const tab = await getCurrentTab();
   if (!tab) return;
 
-  const faviconUrl = new URL(chrome.runtime.getURL('/_favicon/'));
+  const faviconUrl = new URL(browser.runtime.getURL('/_favicon/'));
   if (tab.url) {
     faviconUrl.searchParams.set('pageUrl', tab.url);
   }
@@ -60,7 +60,7 @@ export async function loadCurrentTab(): Promise<void> {
 
 async function resetRecordButton(recordBtn: HTMLButtonElement): Promise<void> {
   recordBtn.disabled = false;
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   const url = tabs[0]?.url;
   const status = url ? await checkPageStatus(url) : null;
   if (status && !status.domainFilter.allowed) {
@@ -74,7 +74,7 @@ async function resetRecordButton(recordBtn: HTMLButtonElement): Promise<void> {
 
 function setRecordAnywayButton(
   recordBtn: HTMLButtonElement,
-  tab: chrome.tabs.Tab,
+  tab: browser.tabs.Tab,
   content: string
 ): void {
   isAwaitingForceConfirm = true;
@@ -88,7 +88,7 @@ function setRecordAnywayButton(
 
 async function forceRecord(
   recordBtn: HTMLButtonElement,
-  tab: chrome.tabs.Tab,
+  tab: browser.tabs.Tab,
   content: string
 ): Promise<void> {
   const startTime = performance.now();
@@ -131,7 +131,7 @@ async function forceRecord(
     hideSpinner();
 
     if (result && result.success) {
-      chrome.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch(() => {});
+      browser.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch(() => {});
 
       const totalDuration = performance.now() - startTime;
       const message = formatSuccessMessage(totalDuration, result.aiDuration, result.obsidianDuration !== undefined);
@@ -216,20 +216,20 @@ export async function recordCurrentPage(force: boolean = false): Promise<void> {
     let contentResponse: ContentResponse;
     try {
       contentResponse = await Promise.race([
-        chrome.tabs.sendMessage(tab.id, { type: 'GET_CONTENT' }) as Promise<ContentResponse>,
+        browser.tabs.sendMessage(tab.id, { type: 'GET_CONTENT' }) as Promise<ContentResponse>,
         new Promise<never>((_, reject) => {
           setTimeout(() => reject(new Error('Content script response timeout')), 5000);
         })
       ]);
-      if (chrome.runtime.lastError) {
-        throw new Error(chrome.runtime.lastError.message);
+      if (browser.runtime.lastError) {
+        throw new Error(browser.runtime.lastError.message);
       }
     } catch (e: unknown) {
       let hasPermission = false;
       try {
-        hasPermission = await chrome.permissions.contains({ origins: ['<all_urls>'] });
+        hasPermission = await browser.permissions.contains({ origins: ['<all_urls>'] });
         if (!hasPermission) {
-          hasPermission = await chrome.permissions.request({ origins: ['<all_urls>'] });
+          hasPermission = await browser.permissions.request({ origins: ['<all_urls>'] });
         }
       } catch { /* パーミッション要求失敗 */ }
 
@@ -238,7 +238,7 @@ export async function recordCurrentPage(force: boolean = false): Promise<void> {
       }
 
       try {
-        const results = await chrome.scripting.executeScript({
+        const results = await browser.scripting.executeScript({
           target: { tabId: tab.id },
           func: () => document.body?.innerText || ''
         });
@@ -382,7 +382,7 @@ export async function recordCurrentPage(force: boolean = false): Promise<void> {
     if (result && result.success) {
       hideSpinner();
 
-      chrome.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch(() => {});
+      browser.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch(() => {});
 
       const totalDuration = performance.now() - startTime;
       const message = formatSuccessMessage(totalDuration, result.aiDuration, result.obsidianDuration !== undefined);

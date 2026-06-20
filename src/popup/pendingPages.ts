@@ -41,7 +41,7 @@ export async function loadPendingPages(): Promise<void> {
         if (titleEl) {
           titleEl.addEventListener('click', (e) => {
             e.stopPropagation();
-            chrome.tabs.create({ url: page.url });
+            browser.tabs.create({ url: page.url });
           });
         }
 
@@ -58,7 +58,7 @@ function escapeRegex(string: string): string {
 }
 
 async function addDomainsOrPathsToWhitelist(urls: string[], type: 'domain' | 'path'): Promise<void> {
-  const { domainWhitelist = [] } = await chrome.storage.local.get('domainWhitelist') as { domainWhitelist?: string[] };
+  const { domainWhitelist = [] } = await browser.storage.local.get('domainWhitelist') as { domainWhitelist?: string[] };
 
   const newEntries = urls.map(url => {
     if (type === 'domain') {
@@ -71,7 +71,7 @@ async function addDomainsOrPathsToWhitelist(urls: string[], type: 'domain' | 'pa
   });
 
   const updatedList = [...domainWhitelist, ...newEntries];
-  await chrome.storage.local.set({ domainWhitelist: updatedList });
+  await browser.storage.local.set({ domainWhitelist: updatedList });
 }
 
 export async function saveSelectedPages(whitelistType?: 'domain' | 'path'): Promise<void> {
@@ -88,7 +88,7 @@ export async function saveSelectedPages(whitelistType?: 'domain' | 'path'): Prom
     const pages = await getPendingPages();
     const page = pages.find(p => p.url === url);
     if (page) {
-      await chrome.runtime.sendMessage({
+      await browser.runtime.sendMessage({
         type: 'record',
         data: {
           title: page.title,
@@ -134,7 +134,7 @@ export function setupEventListeners(): void {
       return;
     }
 
-    if (confirm(chrome.i18n.getMessage('warningConfirmSave'))) {
+    if (confirm(browser.i18n.getMessage('warningConfirmSave'))) {
       await removePendingPages(urls);
       await loadPendingPages();
     }

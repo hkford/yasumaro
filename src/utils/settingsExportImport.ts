@@ -183,7 +183,7 @@ export async function importEncryptedSettings(
         ErrorCode.SETTINGS_SIGNATURE_FAILURE,
         'settingsExportImport.ts'
       );
-      const forceImport = confirm(chrome.i18n.getMessage('hmacVerificationFailedConfirm'));
+      const forceImport = confirm(browser.i18n.getMessage('hmacVerificationFailedConfirm'));
       if (!forceImport) {
         return null;
       }
@@ -387,7 +387,7 @@ export async function importSettings(jsonData: string): Promise<Settings | null>
         ErrorCode.SETTINGS_SIGNATURE_FAILURE,
         'settingsExportImport.ts'
       );
-      alert(chrome.i18n.getMessage('importNoSignature'));
+      alert(browser.i18n.getMessage('importNoSignature'));
       return null; // 旧形式の互換性を削除
     }
 
@@ -407,7 +407,7 @@ export async function importSettings(jsonData: string): Promise<Settings | null>
         ErrorCode.SETTINGS_SIGNATURE_FAILURE,
         'settingsExportImport.ts'
       );
-      const forceImport = confirm(chrome.i18n.getMessage('hmacVerificationFailedConfirm'));
+      const forceImport = confirm(browser.i18n.getMessage('hmacVerificationFailedConfirm'));
       if (!forceImport) {
         return null;
       }

@@ -42,7 +42,7 @@ vi.mock('../../utils/logger.js', () => ({
 }));
 
 vi.stubGlobal('chrome', {
-  runtime: { getURL: vi.fn((path: string) => `chrome-extension://test/${path}`) },
+  runtime: { getURL: vi.fn((path: string) => `browser-extension://test/${path}`) },
   tabs: { create: mockChromeTabsCreate },
   storage: { local: { get: vi.fn(), set: vi.fn() } },
 });

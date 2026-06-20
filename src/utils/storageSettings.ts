@@ -96,13 +96,13 @@ function isEncryptionKey(key: string): boolean {
  */
 export async function migrateToSingleSettingsObject(validStorageKeys: ReadonlyArray<string>): Promise<boolean> {
     // 既に移行済みの場合はスキップ
-    const result = await chrome.storage.local.get(SETTINGS_MIGRATED_KEY);
+    const result = await browser.storage.local.get(SETTINGS_MIGRATED_KEY);
     if (result[SETTINGS_MIGRATED_KEY]) {
         return false;
     }
 
     // 現在のストレージデータを取得
-    const existingKeys = await chrome.storage.local.get(null);
+    const existingKeys = await browser.storage.local.get(null);
     const settings: Settings = {} as Settings;
 
     // StorageKeysに含まれる個別キーをsettingsオブジェクトに集約
@@ -128,7 +128,7 @@ export async function migrateToSingleSettingsObject(validStorageKeys: ReadonlyAr
     });
 
     // マイグレーション完了フラグを設定
-    await chrome.storage.local.set({ [SETTINGS_MIGRATED_KEY]: true });
+    await browser.storage.local.set({ [SETTINGS_MIGRATED_KEY]: true });
 
     // 古い個別キーを削除
     const keysToRemove = Object.keys(existingKeys).filter(key =>
@@ -139,7 +139,7 @@ export async function migrateToSingleSettingsObject(validStorageKeys: ReadonlyAr
     );
 
     if (keysToRemove.length > 0) {
-        await chrome.storage.local.remove(keysToRemove);
+        await browser.storage.local.remove(keysToRemove);
     }
 
     return true;
@@ -167,7 +167,7 @@ export async function getSettings(
     }
 
     // 単一settingsオブジェクトが存在する場合はそれを使用
-    const result = await chrome.storage.local.get(['settings', SETTINGS_MIGRATED_KEY]);
+    const result = await browser.storage.local.get(['settings', SETTINGS_MIGRATED_KEY]);
 
     const rawSettings = result.settings as Settings | undefined;
     console.log('[Storage] Raw storage result:', {
@@ -215,7 +215,7 @@ export async function getSettings(
     }
 
     // 旧方式: StorageKeysで定義されているキーのみを取得
-    let settings = await chrome.storage.local.get(Array.from(validStorageKeys));
+    let settings = await browser.storage.local.get(Array.from(validStorageKeys));
 
     // Merge with 'settings' object if it exists (saveSettings writes to this object)
     // The 'settings' object takes precedence since saveSettings always writes there
@@ -226,7 +226,7 @@ export async function getSettings(
     const migrated = await runMigration();
     if (migrated) {
         // マイグレーション後は同じキーで再取得
-        const afterMigration = await chrome.storage.local.get(Array.from(validStorageKeys));
+        const afterMigration = await browser.storage.local.get(Array.from(validStorageKeys));
         settings = { ...settings, ...afterMigration }; // マイグレーション後の値をマージ
         // addLog(LogType.DEBUG, 'Settings migration completed', { migrated, keysUpdated: Object.keys(afterMigration) });
     }

@@ -219,7 +219,7 @@ export function extractPageContent(): string {
 
 /**
  * 設定をロードする
- * 【機能概要】: chrome.storage.localから設定を読み込む
+ * 【機能概要】: browser.storage.localから設定を読み込む
  * 【読み込みタイミング】: スクリプト読み込み時（Chrome拡張のコンテントスクリプト読み込み時）
  * 【デフォルト値】: MIN_VISIT_DURATION=5秒, MIN_SCROLL_DEPTH=50%
  * 【マイグレーション対応】: settingsキー下から値を取得（マイグレーション後の構造に対応）
@@ -228,7 +228,7 @@ export function extractPageContent(): string {
 function loadSettings(): Promise<void> {
     return new Promise((resolve) => {
         // 新方式（settings オブジェクト）と旧方式（フラットキー）の両方を取得
-        chrome.storage.local.get([
+        browser.storage.local.get([
             'settings',
             'settings_migrated',
             'min_visit_duration',
@@ -616,8 +616,8 @@ async function reportValidVisit(): Promise<void> {
 
                 const statusCode = reasonToStatusCode(response.reason);
                 const messageKey = statusCodeToMessageKey(statusCode);
-                const reasonLabel = chrome.i18n.getMessage(messageKey)
-                    || chrome.i18n.getMessage(`privatePageReason_${(response.reason || '').replace('-', '')}`)
+                const reasonLabel = browser.i18n.getMessage(messageKey)
+                    || browser.i18n.getMessage(`privatePageReason_${(response.reason || '').replace('-', '')}`)
                     || response.reason || 'unknown';
 
                 const userConfirmed = await showPrivacyConfirmDialog(statusCode, reasonLabel);
@@ -663,13 +663,13 @@ async function reportValidVisit(): Promise<void> {
  */
 export function showPrivacyConfirmDialog(statusCode: string, reasonLabel: string): Promise<boolean> {
     return new Promise((resolve) => {
-        const iconUrl = chrome.runtime.getURL('icons/icon48.png');
-        const title = chrome.i18n.getMessage('notifyPrivacyConfirmTitle') || 'Yasumaro';
-        const bodyText = chrome.i18n.getMessage('privacyDialogBody', [reasonLabel])
+        const iconUrl = browser.runtime.getURL('icons/icon48.png');
+        const title = browser.i18n.getMessage('notifyPrivacyConfirmTitle') || 'Yasumaro';
+        const bodyText = browser.i18n.getMessage('privacyDialogBody', [reasonLabel])
             || `このページにはプライバシー懸念があります（${reasonLabel}）。それでも保存しますか？`;
-        const saveLabel = chrome.i18n.getMessage('notifyPrivacyConfirmSave') || '保存する';
-        const cancelLabel = chrome.i18n.getMessage('cancel') || 'キャンセル';
-        const statusLabel = chrome.i18n.getMessage('privacyDialogStatusLabel') || '検出コード';
+        const saveLabel = browser.i18n.getMessage('notifyPrivacyConfirmSave') || '保存する';
+        const cancelLabel = browser.i18n.getMessage('cancel') || 'キャンセル';
+        const statusLabel = browser.i18n.getMessage('privacyDialogStatusLabel') || '検出コード';
 
         // ホスト要素
         const host = document.createElement('div');
@@ -848,10 +848,10 @@ export async function init(): Promise<void> {
 }
 
 // Guard allows this module to be imported in test environments where
-// globalThis.chrome is undefined or chrome.runtime is not available.
-if (typeof globalThis.chrome !== 'undefined' && chrome.runtime?.onMessage) {
+// browser is undefined or browser.runtime is not available.
+if (typeof browser !== 'undefined' && browser.runtime?.onMessage) {
     // 【ポップアップからのメッセージハンドラ】: 手動コンテンツ取得要求に応答
-    chrome.runtime.onMessage.addListener((message: unknown, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
+    browser.runtime.onMessage.addListener((message: unknown, sender: browser.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
         if (typeof message !== 'object' || message === null || !('type' in message)) return;
         const msg = message as ContentMessage;
         if (msg.type === 'GET_CONTENT') {

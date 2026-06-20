@@ -176,7 +176,7 @@ export const StorageKeys = {
     YASUMARO_MIGRATION_STATUS: 'yasumaro_migration_status', // 'pending' | 'completed' | 'fresh_install' | null
     YASUMARO_MIGRATION_PROGRESS: 'yasumaro_migration_progress', // 移行済み件数（再開用）
     // OPFS fallback mode tracking
-    OPFS_FALLBACK_MODE: 'opfs_fallback_mode', // true when OPFS is unavailable and using chrome.storage.local fallback
+    OPFS_FALLBACK_MODE: 'opfs_fallback_mode', // true when OPFS is unavailable and using browser.storage.local fallback
     OPFS_MIGRATION_V2_DONE: 'opfs_migration_v2_done', // true when AccessHandlePoolVFS→OPFSCoopSyncVFS migration completed
     // SQLite retention policy (null = unlimited / no purge)
     SQLITE_RETENTION_DAYS: 'sqlite_retention_days',

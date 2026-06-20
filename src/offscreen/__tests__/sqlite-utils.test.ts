@@ -31,7 +31,7 @@ describe('FTS5 query handling', () => {
 
     handleOffscreenMessage(
       { target: 'offscreen', type: 'SQLITE_SEARCH', payload: { query: longQuery } },
-      {} as chrome.runtime.MessageSender,
+      {} as browser.runtime.MessageSender,
       (r) => responses.push(r)
     );
 
@@ -46,7 +46,7 @@ describe('FTS5 query handling', () => {
     const responses: unknown[] = [];
     handleOffscreenMessage(
       { target: 'offscreen', type: 'SQLITE_SEARCH', payload: { query: '' } },
-      {} as chrome.runtime.MessageSender,
+      {} as browser.runtime.MessageSender,
       (r) => responses.push(r)
     );
 
@@ -59,7 +59,7 @@ describe('FTS5 query handling', () => {
     const responses: unknown[] = [];
     handleOffscreenMessage(
       { target: 'offscreen', type: 'SQLITE_SEARCH', payload: { query: 'test " OR "1"="1' } },
-      {} as chrome.runtime.MessageSender,
+      {} as browser.runtime.MessageSender,
       (r) => responses.push(r)
     );
 

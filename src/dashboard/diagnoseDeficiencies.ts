@@ -19,7 +19,7 @@ export interface DiagnosticInput {
   worker: boolean;
   /** Whether the database was successfully initialized. */
   initialized: boolean;
-  /** Whether using FallbackStorage (chrome.storage.local). */
+  /** Whether using FallbackStorage (browser.storage.local). */
   fallback: boolean;
   /** Whether FTS5 virtual table is available. */
   fts5: boolean;
@@ -58,7 +58,7 @@ export interface DeficiencyItem {
 export function diagnoseDeficiencies(input: DiagnosticInput): DeficiencyItem[] {
   const items: DeficiencyItem[] = [];
 
-  // OPFS not available AND using fallback storage (IDB or chrome.storage.local).
+  // OPFS not available AND using fallback storage (IDB or browser.storage.local).
   // When IDB is working, OPFS absence is not a deficiency.
   if (!input.opfsDirectory && input.fallback) {
     items.push({

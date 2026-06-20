@@ -21,7 +21,7 @@ import { errorMessage } from '../utils/errorUtils.js';
 const PAGE_SIZE = 20;
 
 function t(key: string, substitutions?: string | string[]): string {
-  return chrome.i18n.getMessage(key, substitutions as string | string[]) || key;
+  return browser.i18n.getMessage(key, substitutions as string | string[]) || key;
 }
 
 interface SqliteHistoryState {
@@ -228,9 +228,9 @@ async function handleAppendToObsidian(): Promise<void> {
 
   if (result === null) {
     // API Key not configured or connection error
-    chrome.notifications?.create({
+    browser.notifications?.create({
       type: 'basic',
-      iconUrl: chrome.runtime.getURL('/icons/icon48.png'),
+      iconUrl: browser.runtime.getURL('/icons/icon48.png'),
       title: t('historyAppendToObsidian'),
       message: t('historyAppendObsidianNotConfigured'),
     });
@@ -241,16 +241,16 @@ async function handleAppendToObsidian(): Promise<void> {
     state.selectedIds.clear();
     updateBulkBar();
     renderEntryList();
-    chrome.notifications?.create({
+    browser.notifications?.create({
       type: 'basic',
-      iconUrl: chrome.runtime.getURL('/icons/icon48.png'),
+      iconUrl: browser.runtime.getURL('/icons/icon48.png'),
       title: t('historyAppendToObsidian'),
       message: t('historyAppendSuccess', [String(ids.length)]),
     });
   } else {
-    chrome.notifications?.create({
+    browser.notifications?.create({
       type: 'basic',
-      iconUrl: chrome.runtime.getURL('/icons/icon48.png'),
+      iconUrl: browser.runtime.getURL('/icons/icon48.png'),
       title: t('historyAppendToObsidian'),
       message: t('historyAppendFailed'),
     });

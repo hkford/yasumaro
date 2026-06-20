@@ -523,7 +523,7 @@ describe('initStatusPanel - extended', () => {
       cache: { hasCache: false },
       lastSaved: { exists: false },
     });
-    // Mock chrome.tabs.sendMessage for cleansing stats
+    // Mock browser.tabs.sendMessage for cleansing stats
     mockChrome.tabs.sendMessage.mockImplementation((tabId, msg, cb) => {
       if (msg.type === 'GET_CONTENT') {
         cb({ cleanseStats: { totalRemoved: 0, hardStripRemoved: 0, keywordStripRemoved: 0 } });
@@ -536,7 +536,7 @@ describe('initStatusPanel - extended', () => {
     expect(panel.style.display).not.toBe('none');
   });
 
-   it('handles chrome.runtime.lastError gracefully', async () => {
+   it('handles browser.runtime.lastError gracefully', async () => {
     const mockTab = { url: 'https://example.com', id: 1 };
     mockGetCurrentTab.mockResolvedValue(mockTab);
     mockCheckPageStatus.mockResolvedValue({
@@ -548,7 +548,7 @@ describe('initStatusPanel - extended', () => {
     mockChrome.tabs.sendMessage.mockImplementation((tabId, msg, cb) => {
       const error = new Error('Test error');
       // @ts-expect-error
-      chrome.runtime.lastError = error;
+      browser.runtime.lastError = error;
       cb(undefined);
     });
     await expect(initStatusPanel()).resolves.not.toThrow();

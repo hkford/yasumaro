@@ -76,8 +76,8 @@ import { showError } from '../errorUtils.js';
 import { showSpinner } from '../spinner.js';
 
 // getURL must return a valid URL for new URL() in loadCurrentTab
-vi.spyOn(chrome.runtime, 'getURL').mockImplementation((path: string) =>
-    `chrome-extension://test-extension-id${path}`
+vi.spyOn(browser.runtime, 'getURL').mockImplementation((path: string) =>
+    `browser-extension://test-extension-id${path}`
 );
 
 // Set up DOM for module-level initialization (L415)
@@ -96,7 +96,7 @@ const mockChrome = {
     },
     runtime: {
         sendMessage: vi.fn().mockResolvedValue(undefined),
-        getURL: vi.fn((path: string) => `chrome-extension://test-extension-id${path}`),
+        getURL: vi.fn((path: string) => `browser-extension://test-extension-id${path}`),
         lastError: null as { message: string } | null,
     },
     permissions: {
@@ -191,8 +191,8 @@ describe('recordCurrentPage', () => {
         `;
         // Reset mocks
         vi.clearAllMocks();
-        chrome.runtime.lastError = null;
-        chrome.tabs.sendMessage.mockResolvedValue({ content: 'test content' });
+        browser.runtime.lastError = null;
+        browser.tabs.sendMessage.mockResolvedValue({ content: 'test content' });
         (sendMessageWithRetry as ReturnType<typeof vi.fn>).mockResolvedValue({
             success: true,
             aiDuration: 100,
@@ -216,35 +216,35 @@ describe('recordCurrentPage', () => {
         );
     });
 
-    it('handles chrome.runtime.lastError after sendMessage (L225)', async () => {
+    it('handles browser.runtime.lastError after sendMessage (L225)', async () => {
         (getCurrentTab as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
             id: 1,
             url: 'https://example.com',
             title: 'Test',
         });
-        chrome.tabs.sendMessage.mockResolvedValueOnce({ content: 'test' });
-        chrome.runtime.lastError = { message: 'Runtime error' };
+        browser.tabs.sendMessage.mockResolvedValueOnce({ content: 'test' });
+        browser.runtime.lastError = { message: 'Runtime error' };
 
         await recordCurrentPage();
 
-        expect(chrome.scripting.executeScript).toHaveBeenCalledWith({
+        expect(browser.scripting.executeScript).toHaveBeenCalledWith({
             target: { tabId: 1 },
             func: expect.any(Function),
         });
     });
 
-    it('falls back to chrome.scripting.executeScript when sendMessage fails (L243)', async () => {
+    it('falls back to browser.scripting.executeScript when sendMessage fails (L243)', async () => {
         (getCurrentTab as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
             id: 1,
             url: 'https://example.com',
             title: 'Test',
         });
-        chrome.tabs.sendMessage.mockRejectedValueOnce(new Error('Send failed'));
-        chrome.runtime.lastError = null;
+        browser.tabs.sendMessage.mockRejectedValueOnce(new Error('Send failed'));
+        browser.runtime.lastError = null;
 
         await recordCurrentPage();
 
-        expect(chrome.scripting.executeScript).toHaveBeenCalledWith({
+        expect(browser.scripting.executeScript).toHaveBeenCalledWith({
             target: { tabId: 1 },
             func: expect.any(Function),
         });

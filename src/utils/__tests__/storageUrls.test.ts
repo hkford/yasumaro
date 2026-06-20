@@ -43,13 +43,13 @@ import {
 } from '../storageUrls.js';
 
 /**
- * Helper to seed savedUrlsWithTimestamps into chrome.storage.local.
+ * Helper to seed savedUrlsWithTimestamps into browser.storage.local.
  * The global mock from jest.setup.ts stores data in an in-memory object
- * keyed by `localStorage`.  We write directly via chrome.storage.local.set.
+ * keyed by `localStorage`.  We write directly via browser.storage.local.set.
  */
 async function seedTimestamps(entries: Array<{ url: string; timestamp: number; recordType?: 'auto' | 'manual'; tags?: string[]; content?: string; cleansedReason?: string; maskedCount?: number; aiSummary?: string; sentTokens?: number; receivedTokens?: number; originalTokens?: number; cleansedTokens?: number; pageBytes?: number; candidateBytes?: number; originalBytes?: number; cleansedBytes?: number; aiSummaryOriginalBytes?: number; aiSummaryCleansedBytes?: number; aiSummaryCleansedElements?: number; aiSummaryCleansedReason?: string }>) {
-    await chrome.storage.local.set({ savedUrlsWithTimestamps: entries });
-    await chrome.storage.local.set({ savedUrls: entries.map(e => e.url) });
+    await browser.storage.local.set({ savedUrlsWithTimestamps: entries });
+    await browser.storage.local.set({ savedUrls: entries.map(e => e.url) });
 }
 
 // ============================================================================
@@ -63,7 +63,7 @@ describe('getSavedUrls / isUrlSaved / getSavedUrlCount', () => {
     });
 
     it('returns URLs from storage', async () => {
-        await chrome.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
+        await browser.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com'] });
         const urls = await getSavedUrls();
         expect(urls.size).toBe(2);
         expect(urls.has('https://a.com')).toBe(true);
@@ -71,13 +71,13 @@ describe('getSavedUrls / isUrlSaved / getSavedUrlCount', () => {
     });
 
     it('isUrlSaved returns true for saved URL', async () => {
-        await chrome.storage.local.set({ savedUrls: ['https://example.com'] });
+        await browser.storage.local.set({ savedUrls: ['https://example.com'] });
         expect(await isUrlSaved('https://example.com')).toBe(true);
         expect(await isUrlSaved('https://other.com')).toBe(false);
     });
 
     it('getSavedUrlCount returns correct count', async () => {
-        await chrome.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com', 'https://c.com'] });
+        await browser.storage.local.set({ savedUrls: ['https://a.com', 'https://b.com', 'https://c.com'] });
         expect(await getSavedUrlCount()).toBe(3);
     });
 });
@@ -660,7 +660,7 @@ describe('getAllowedUrls', () => {
     });
 
     it('returns URLs from storage', async () => {
-        await chrome.storage.local.set({ myKey: ['https://a.com', 'https://b.com'] });
+        await browser.storage.local.set({ myKey: ['https://a.com', 'https://b.com'] });
         const urls = await getAllowedUrls('myKey');
         expect(urls.size).toBe(2);
         expect(urls.has('https://a.com')).toBe(true);
@@ -872,7 +872,7 @@ describe('setSavedUrlsWithTimestamps', () => {
     });
 
     it('updates savedUrls when size differs from current', async () => {
-        await chrome.storage.local.set({ savedUrls: ['https://old.com'] });
+        await browser.storage.local.set({ savedUrls: ['https://old.com'] });
         const urlMap = new Map<string, number>([
             ['https://a.com', 1000],
             ['https://b.com', 2000],
@@ -885,7 +885,7 @@ describe('setSavedUrlsWithTimestamps', () => {
     });
 
     it('updates savedUrls when content differs even with same size', async () => {
-        await chrome.storage.local.set({ savedUrls: ['https://old.com'] });
+        await browser.storage.local.set({ savedUrls: ['https://old.com'] });
         const urlMap = new Map<string, number>([
             ['https://new.com', 1000],
         ]);

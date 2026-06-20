@@ -161,7 +161,7 @@ async function initDiagnosticsPanel(): Promise<void> {
   // Storage stats
   if (storageStats) {
     try {
-      const bytesUsed = await chrome.storage.local.getBytesInUse(null);
+      const bytesUsed = await browser.storage.local.getBytesInUse(null);
       const kb = (bytesUsed / 1024).toFixed(1);
       const urlCount = await getSavedUrlCount();
 
@@ -191,7 +191,7 @@ async function initDiagnosticsPanel(): Promise<void> {
   const diagDivergenceWarning = document.getElementById('diagDivergenceWarning') as HTMLElement | null;
 
   // Load debug mode state
-  const debugModeResult = await chrome.storage.local.get('debugMode');
+  const debugModeResult = await browser.storage.local.get('debugMode');
   const debugMode = Boolean(debugModeResult.debugMode);
   if (diagDebugModeToggle) {
     diagDebugModeToggle.checked = debugMode;
@@ -206,7 +206,7 @@ async function initDiagnosticsPanel(): Promise<void> {
   diagDebugModeToggle?.addEventListener('change', async () => {
     const isOn = diagDebugModeToggle.checked;
     diagDebugModeToggle.setAttribute('aria-checked', String(isOn));
-    await chrome.storage.local.set({ debugMode: isOn });
+    await browser.storage.local.set({ debugMode: isOn });
     if (compileOptionsSection) {
       compileOptionsSection.style.display = isOn ? '' : 'none';
     }
@@ -373,7 +373,7 @@ async function initDiagnosticsPanel(): Promise<void> {
 
   // Extension info
   if (extInfo) {
-    const manifest = chrome.runtime.getManifest();
+    const manifest = browser.runtime.getManifest();
     extInfo.appendChild(makeStatRow(
       getMessage('diagVersion') || 'Version',
       manifest.version
@@ -397,7 +397,7 @@ async function initDiagnosticsPanel(): Promise<void> {
     connectionResult.className = 'diag-result';
 
     try {
-      const testResult = await chrome.runtime.sendMessage({
+      const testResult = await browser.runtime.sendMessage({
         type: 'TEST_OBSIDIAN',
         payload: {}
       }) as { obsidian?: { success: boolean; message: string } };
@@ -423,7 +423,7 @@ async function initDiagnosticsPanel(): Promise<void> {
     connectionResult.className = 'diag-result';
 
     try {
-      const testResult = await chrome.runtime.sendMessage({
+      const testResult = await browser.runtime.sendMessage({
         type: 'TEST_AI',
         payload: {}
       }) as { ai?: { success: boolean; message: string } };
@@ -449,7 +449,7 @@ async function initDiagnosticsPanel(): Promise<void> {
     sqliteResult.className = 'diag-result';
 
     try {
-      const testResult = await chrome.runtime.sendMessage({
+      const testResult = await browser.runtime.sendMessage({
         type: 'DASHBOARD_SQLITE',
         payload: { subtype: 'status' }
       }) as { success: boolean; initialized?: boolean; fallback?: boolean; error?: string; initError?: string; fts5?: boolean };

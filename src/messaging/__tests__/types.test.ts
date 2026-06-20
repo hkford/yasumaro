@@ -251,7 +251,7 @@ describe('messaging/types: extractMessageContent', () => {
     it('extracts tabId and tabUrl from sender with tab', () => {
         const sender = {
             tab: { id: 42, url: 'https://example.com' },
-        } as chrome.runtime.MessageSender;
+        } as browser.runtime.MessageSender;
 
         const result = extractMessageContent(sender);
 
@@ -261,7 +261,7 @@ describe('messaging/types: extractMessageContent', () => {
     });
 
     it('allows popup sender without tab', () => {
-        const sender = {} as chrome.runtime.MessageSender;
+        const sender = {} as browser.runtime.MessageSender;
 
         const result = extractMessageContent(sender);
 
@@ -271,7 +271,7 @@ describe('messaging/types: extractMessageContent', () => {
     });
 
     it('allows sender with tab but no id', () => {
-        const sender = { tab: { url: 'https://example.com' } } as unknown as chrome.runtime.MessageSender;
+        const sender = { tab: { url: 'https://example.com' } } as unknown as browser.runtime.MessageSender;
 
         const result = extractMessageContent(sender);
 
@@ -288,20 +288,20 @@ describe('messaging/types: sendServiceWorkerMessage', () => {
 
     it('returns response on success', async () => {
         const response = { success: true, data: 'ok' };
-        (globalThis as any).chrome.runtime.sendMessage = vi.fn().mockResolvedValue(response);
+        (globalThis as any).browser.runtime.sendMessage = vi.fn().mockResolvedValue(response);
 
         const result = await sendServiceWorkerMessage('VALID_VISIT', { content: 'hi' });
         expect(result).toEqual(response);
     });
 
     it('throws on error response', async () => {
-        (globalThis as any).chrome.runtime.sendMessage = vi.fn().mockResolvedValue({ success: false, error: 'fail' });
+        (globalThis as any).browser.runtime.sendMessage = vi.fn().mockResolvedValue({ success: false, error: 'fail' });
 
         await expect(sendServiceWorkerMessage('CHECK_DOMAIN')).rejects.toThrow('fail');
     });
 
     it('throws on error response for fetch', async () => {
-        (globalThis as any).chrome.runtime.sendMessage = vi.fn().mockResolvedValue({ success: false, error: 'timeout' });
+        (globalThis as any).browser.runtime.sendMessage = vi.fn().mockResolvedValue({ success: false, error: 'timeout' });
 
         await expect(sendServiceWorkerMessage('FETCH_URL', { url: 'https://ex.com' })).rejects.toThrow('timeout');
     });
@@ -314,7 +314,7 @@ describe('messaging/types: sendFromContentScript', () => {
 
     it('delegates to sendServiceWorkerMessage', async () => {
         const response = { success: true, summary: 'test' };
-        (globalThis as any).chrome.runtime.sendMessage = vi.fn().mockResolvedValue(response);
+        (globalThis as any).browser.runtime.sendMessage = vi.fn().mockResolvedValue(response);
 
         const result = await sendFromContentScript('VALID_VISIT', { content: 'hello' });
         expect(result).toEqual(response);
@@ -328,7 +328,7 @@ describe('messaging/types: sendFromPopup', () => {
 
     it('sends message without payload when payload is undefined', async () => {
         const sendMessageMock = vi.fn().mockResolvedValue({ success: true });
-        (globalThis as any).chrome.runtime.sendMessage = sendMessageMock;
+        (globalThis as any).browser.runtime.sendMessage = sendMessageMock;
 
         await sendFromPopup('TEST_CONNECTIONS');
         expect(sendMessageMock).toHaveBeenCalledWith({ type: 'TEST_CONNECTIONS' });
@@ -336,14 +336,14 @@ describe('messaging/types: sendFromPopup', () => {
 
     it('sends message with payload when provided', async () => {
         const sendMessageMock = vi.fn().mockResolvedValue({ success: true });
-        (globalThis as any).chrome.runtime.sendMessage = sendMessageMock;
+        (globalThis as any).browser.runtime.sendMessage = sendMessageMock;
 
         await sendFromPopup('VALID_VISIT', { content: 'hi' });
         expect(sendMessageMock).toHaveBeenCalledWith({ type: 'VALID_VISIT', payload: { content: 'hi' } });
     });
 
     it('throws on error response', async () => {
-        (globalThis as any).chrome.runtime.sendMessage = vi.fn().mockResolvedValue({ success: false, error: 'popup error' });
+        (globalThis as any).browser.runtime.sendMessage = vi.fn().mockResolvedValue({ success: false, error: 'popup error' });
 
         await expect(sendFromPopup('TEST_OBSIDIAN')).rejects.toThrow('popup error');
     });

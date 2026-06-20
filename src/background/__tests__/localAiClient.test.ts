@@ -146,7 +146,7 @@ describe('LocalAIClient', () => {
             expect(result.error).toBe('Something went wrong');
         });
 
-        test('chrome.runtime.lastError でエラーを返す', async () => {
+        test('browser.runtime.lastError でエラーを返す', async () => {
             mockChrome.runtime.sendMessage.mockImplementation((_msg: any, cb: Function) => {
                 mockChrome.runtime.lastError = { message: 'Connection failed' };
                 cb(null);

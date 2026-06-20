@@ -275,7 +275,7 @@ describe('trustSettings.ts', () => {
       thresholdInput.dispatchEvent(new Event('change'));
 
       await new Promise(r => setTimeout(r, 10));
-      expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      expect(browser.storage.local.set).toHaveBeenCalledWith(
         expect.objectContaining({ permission_notify_threshold: 5 })
       );
     });
@@ -290,7 +290,7 @@ describe('trustSettings.ts', () => {
       thresholdInput.dispatchEvent(new Event('change'));
 
       await new Promise(r => setTimeout(r, 10));
-      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+      expect(browser.storage.local.set).not.toHaveBeenCalled();
     });
 
     test('should ignore threshold above 50', async () => {
@@ -303,7 +303,7 @@ describe('trustSettings.ts', () => {
       thresholdInput.dispatchEvent(new Event('change'));
 
       await new Promise(r => setTimeout(r, 10));
-      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+      expect(browser.storage.local.set).not.toHaveBeenCalled();
     });
 
     test('should handle category tab click', async () => {

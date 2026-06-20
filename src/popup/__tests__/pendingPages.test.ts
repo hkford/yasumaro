@@ -116,7 +116,7 @@ describe('loadPendingPages', () => {
         ]);
         await loadPendingPages();
         const titleEl = document.querySelector('.pending-item-title') as HTMLElement;
-        const createSpy = vi.spyOn(chrome.tabs, 'create').mockResolvedValue({});
+        const createSpy = vi.spyOn(browser.tabs, 'create').mockResolvedValue({});
         titleEl.click();
         expect(createSpy).toHaveBeenCalledWith({ url: 'https://example.com' });
     });
@@ -153,7 +153,7 @@ describe('saveSelectedPages', () => {
         document.body.innerHTML += `
             <input type="checkbox" class="pending-checkbox" value="https://example.com" checked>
         `;
-        const sendMessageSpy = vi.spyOn(chrome.runtime, 'sendMessage').mockResolvedValue({});
+        const sendMessageSpy = vi.spyOn(browser.runtime, 'sendMessage').mockResolvedValue({});
         await saveSelectedPages();
         expect(sendMessageSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'record' }));
     });
@@ -165,8 +165,8 @@ describe('saveSelectedPages', () => {
         (getPendingPages as ReturnType<typeof vi.fn>).mockResolvedValue([
             { url: 'https://example.com/page', title: 'Example Page', reason: 'test', headerValue: '' }
         ]);
-        const storageSetSpy = vi.spyOn(chrome.storage.local, 'set').mockResolvedValue(undefined);
-        const sendMessageSpy = vi.spyOn(chrome.runtime, 'sendMessage').mockResolvedValue({});
+        const storageSetSpy = vi.spyOn(browser.storage.local, 'set').mockResolvedValue(undefined);
+        const sendMessageSpy = vi.spyOn(browser.runtime, 'sendMessage').mockResolvedValue({});
         await saveSelectedPages('path');
         expect(storageSetSpy).toHaveBeenCalledWith({
             domainWhitelist: expect.arrayContaining(['^https://example\\.com/page$'])
@@ -245,7 +245,7 @@ describe('DOM Event Listeners', () => {
                 <input type="checkbox" class="pending-checkbox" value="https://example.com" checked>
             `;
 
-            const sendMessageSpy = vi.spyOn(chrome.runtime, 'sendMessage').mockResolvedValue({});
+            const sendMessageSpy = vi.spyOn(browser.runtime, 'sendMessage').mockResolvedValue({});
 
             const button = document.getElementById('btn-save-selected')!;
             button.click();
@@ -264,8 +264,8 @@ describe('DOM Event Listeners', () => {
                 <input type="checkbox" class="pending-checkbox" value="https://example.com" checked>
             `;
 
-            const storageSetSpy = vi.spyOn(chrome.storage.local, 'set').mockResolvedValue(undefined);
-            const sendMessageSpy = vi.spyOn(chrome.runtime, 'sendMessage').mockResolvedValue({});
+            const storageSetSpy = vi.spyOn(browser.storage.local, 'set').mockResolvedValue(undefined);
+            const sendMessageSpy = vi.spyOn(browser.runtime, 'sendMessage').mockResolvedValue({});
 
             const button = document.getElementById('btn-save-whitelist')!;
             button.click();

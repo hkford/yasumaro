@@ -10,7 +10,7 @@
 import { vi } from 'vitest';;
 import { TrancoChangeDetector } from '../trancoChangeDetector.js';
 
-// Mock chrome.storage.local
+// Mock browser.storage.local
 const mockStorage = new Map<string, any>();
 
 const mockChromeStorage = {

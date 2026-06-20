@@ -23,6 +23,7 @@ async function executeRecord(
   info: HTMLElement,
   onSuccess: OnRecordSuccess,
 ): Promise<void> {
+  console.log('[historyPendingPanel] executeRecord: clicked Record Now', { url: page.url, skipAi });
   btn.disabled = true;
   btn.textContent = getMessage('processing') || '処理中...';
   const errorEl = info.querySelector('.record-error-message') as HTMLElement | null;

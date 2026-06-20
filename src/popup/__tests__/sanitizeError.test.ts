@@ -10,7 +10,7 @@ describe('sanitizeErrorMessage - 内部情報保護テスト（タスク3）', (
   let mockGetMsg;
 
   beforeEach(() => {
-    // chrome.i18n.getMessageのモック
+    // browser.i18n.getMessageのモック
     mockGetMsg = vi.fn();
     // @ts-expect-error - vi.fn() type narrowing issue
   
@@ -29,7 +29,7 @@ describe('sanitizeErrorMessage - 内部情報保護テスト（タスク3）', (
     if (!global.chrome) {
       global.chrome = {};
     }
-    global.chrome.i18n = {
+    global.browser.i18n = {
       getMessage: mockGetMsg
     };
   });
@@ -287,9 +287,9 @@ Normal error message`;
  */
 describe('getUserErrorMessage - パフォーマンス検証', () => {
   beforeEach(() => {
-    // chrome.i18n.getMessageのモックを設定
+    // browser.i18n.getMessageのモックを設定
     if (!global.chrome) global.chrome = {};
-    global.chrome.i18n = {
+    global.browser.i18n = {
       getMessage: vi.fn((key) => {
         const messages = {
           'errorPrefix': 'Error:',

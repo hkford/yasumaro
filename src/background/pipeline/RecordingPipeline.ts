@@ -241,7 +241,7 @@ export class RecordingPipeline {
           timestamp: Date.now(),
           context: {
             url: context.data.url,
-            tabId: (context.data as unknown as Record<string, unknown>).tabId as number | undefined
+            tabId: (context.data as RecordingData & { tabId?: number }).tabId
           }
         };
 
@@ -308,15 +308,15 @@ export class RecordingPipeline {
     logError(`Pipeline failed at step ${stepName}`, {
       error: error.message,
       url: context.data.url,
-      tabId: (context.data as unknown as Record<string, unknown>).tabId as number | undefined
+      tabId: (context.data as RecordingData & { tabId?: number }).tabId
     }, ErrorCode.INTERNAL_ERROR, 'RecordingPipeline');
 
     // Create error notification
     const { title } = context.data;
-    const notificationTitle = chrome.i18n.getMessage('recordingFailed') || 'Recording Failed';
-    chrome.notifications.create({
+    const notificationTitle = browser.i18n.getMessage('recordingFailed') || 'Recording Failed';
+    browser.notifications.create({
       type: 'basic',
-      iconUrl: 'icons/icon128.png',
+      iconUrl: '/icons/icon128.png',
       title: notificationTitle,
       message: `Failed to record ${title}: ${error.message}`
     });
@@ -344,7 +344,7 @@ export class RecordingPipeline {
       });
     }
 
-    return {
+    const result = {
       success: true,
       summary: privacyResult?.summary,
       maskedCount: privacyResult?.maskedCount,
@@ -358,5 +358,14 @@ export class RecordingPipeline {
       title: data.title,
       url: data.url
     };
+
+    try {
+      JSON.stringify(result);
+      console.log('[RecordingPipeline] buildResult: result is JSON serializable');
+    } catch (e) {
+      console.error('[RecordingPipeline] buildResult: result is NOT JSON serializable!', e);
+    }
+
+    return result;
   }
 }

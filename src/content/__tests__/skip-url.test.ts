@@ -8,7 +8,7 @@ describe('shouldSkipUrl', () => {
 
     test('skips internal schemes (explicit)', () => {
         expect(shouldSkipUrl('chrome://extensions')).toBe(true);
-        expect(shouldSkipUrl('chrome-extension://abc/popup.html')).toBe(true);
+        expect(shouldSkipUrl('browser-extension://abc/popup.html')).toBe(true);
         expect(shouldSkipUrl('file:///tmp/test.html')).toBe(true);
         expect(shouldSkipUrl('about:blank')).toBe(true);
         expect(shouldSkipUrl('about:srcdoc')).toBe(true);

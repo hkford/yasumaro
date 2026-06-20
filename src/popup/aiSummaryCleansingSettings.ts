@@ -510,7 +510,7 @@ export function setupAiSummaryCleansingEventListeners(): void {
                 
                 // ステータスメッセージを表示
                 if (statusElement) {
-                    statusElement.textContent = chrome.i18n.getMessage('settingsSaved') || '設定を保存しました';
+                    statusElement.textContent = browser.i18n.getMessage('settingsSaved') || '設定を保存しました';
                     statusElement.className = 'status-message success';
                     setTimeout(() => {
                         statusElement.textContent = '';
@@ -520,7 +520,7 @@ export function setupAiSummaryCleansingEventListeners(): void {
             } catch (error) {
                 logError('Failed to save AI summary cleansing settings', { cause: error }, ErrorCode.STORAGE_WRITE_FAILURE);
                 if (statusElement) {
-                    statusElement.textContent = chrome.i18n.getMessage('settingsSaveError') || '設定の保存に失敗しました';
+                    statusElement.textContent = browser.i18n.getMessage('settingsSaveError') || '設定の保存に失敗しました';
                     statusElement.className = 'status-message error';
                 }
             }

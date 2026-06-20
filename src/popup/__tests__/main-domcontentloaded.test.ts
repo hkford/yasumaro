@@ -110,7 +110,7 @@ describe('main.ts DOMContentLoaded', () => {
 
         expect(initStatusPanelMock).toHaveBeenCalled();
         expect(initAllUrlsPermissionBannerMock).toHaveBeenCalled();
-        expect(chrome.tabs.query).toHaveBeenCalled();
+        expect(browser.tabs.query).toHaveBeenCalled();
     });
 
     it('logs error when loadCurrentTabAndInitStatus fails', async () => {
@@ -141,14 +141,14 @@ describe('main.ts DOMContentLoaded', () => {
         );
     });
 
-    it('clears badge text via chrome.tabs.query callback when tab id exists', async () => {
+    it('clears badge text via browser.tabs.query callback when tab id exists', async () => {
         initStatusPanelMock.mockResolvedValue(undefined);
         initAllUrlsPermissionBannerMock.mockResolvedValue(undefined);
 
         document.dispatchEvent(new Event('DOMContentLoaded'));
         await new Promise(r => setTimeout(r, 50));
 
-        expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: '', tabId: 123 });
+        expect(browser.action.setBadgeText).toHaveBeenCalledWith({ text: '', tabId: 123 });
     });
 
     it('does not set badge text when tab has no id', async () => {
@@ -156,14 +156,14 @@ describe('main.ts DOMContentLoaded', () => {
         initAllUrlsPermissionBannerMock.mockResolvedValue(undefined);
 
         // @ts-expect-error mockImplementation override
-        chrome.tabs.query.mockImplementation((_query, callback) => {
+        browser.tabs.query.mockImplementation((_query, callback) => {
             if (callback) callback([{ url: 'https://example.com' }]);
         });
 
         document.dispatchEvent(new Event('DOMContentLoaded'));
         await new Promise(r => setTimeout(r, 50));
 
-        expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
+        expect(browser.action.setBadgeText).not.toHaveBeenCalled();
     });
 
     it('does not set badge text when tabs.query returns empty array', async () => {
@@ -171,13 +171,13 @@ describe('main.ts DOMContentLoaded', () => {
         initAllUrlsPermissionBannerMock.mockResolvedValue(undefined);
 
         // @ts-expect-error mockImplementation override
-        chrome.tabs.query.mockImplementation((_query, callback) => {
+        browser.tabs.query.mockImplementation((_query, callback) => {
             if (callback) callback([]);
         });
 
         document.dispatchEvent(new Event('DOMContentLoaded'));
         await new Promise(r => setTimeout(r, 50));
 
-        expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
+        expect(browser.action.setBadgeText).not.toHaveBeenCalled();
     });
 });

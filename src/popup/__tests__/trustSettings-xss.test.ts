@@ -50,7 +50,7 @@ global.chrome = {
 } as any;
 
 // Mock internationalization
-global.chrome.i18n = {
+global.browser.i18n = {
   getMessage: vi.fn((key: string) => `Message for ${key}`),
   getUILanguage: vi.fn(() => 'ja')
 } as any;

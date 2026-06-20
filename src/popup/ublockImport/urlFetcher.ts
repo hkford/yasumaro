@@ -20,7 +20,7 @@ export async function fetchFromUrl(url: string): Promise<string> {
   }
 
   try {
-    const response = await chrome.runtime.sendMessage({
+    const response = await browser.runtime.sendMessage({
       type: 'FETCH_URL',
       payload: { url }
     });

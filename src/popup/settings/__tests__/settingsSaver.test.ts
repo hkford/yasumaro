@@ -105,14 +105,14 @@ describe('settingsSaver', () => {
 
     describe('runConnectionTest', () => {
         it('should return success when both connections succeed', async () => {
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({
                 obsidian: { success: true, message: 'Connected' },
                 ai: { success: true, message: 'Connected' },
             });
 
             const result = await runConnectionTest();
 
-            expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({
+            expect(global.browser.runtime.sendMessage).toHaveBeenCalledWith({
                 type: 'TEST_CONNECTIONS',
                 payload: {},
             });
@@ -125,7 +125,7 @@ describe('settingsSaver', () => {
         });
 
         it('should return failure when both connections fail', async () => {
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({
                 obsidian: { success: false, message: 'Failed' },
                 ai: { success: false, message: 'API Error' },
             });
@@ -141,7 +141,7 @@ describe('settingsSaver', () => {
         });
 
         it('should return default failure when response is undefined', async () => {
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue(undefined);
+            (global.browser.runtime.sendMessage as any).mockResolvedValue(undefined);
 
             const result = await runConnectionTest();
 
@@ -154,7 +154,7 @@ describe('settingsSaver', () => {
         });
 
         it('should return default failure when response fields are missing', async () => {
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({});
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({});
 
             const result = await runConnectionTest();
 
@@ -167,7 +167,7 @@ describe('settingsSaver', () => {
         });
 
         it('should handle partial response (only obsidian)', async () => {
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({
                 obsidian: { success: true, message: 'OK' },
             });
 
@@ -182,7 +182,7 @@ describe('settingsSaver', () => {
         });
 
         it('should handle partial response (only ai)', async () => {
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({
                 ai: { success: true, message: 'OK' },
             });
 
@@ -455,7 +455,7 @@ describe('settingsSaver', () => {
             (getSettings as any).mockResolvedValue({ existing: 'value' });
             (extractSettingsFromInputs as any).mockReturnValue({ newSetting: 'value' });
             (saveSettingsWithAllowedUrls as any).mockResolvedValue(undefined);
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({
                 obsidian: { success: true, message: 'OK' },
                 ai: { success: true, message: 'OK' },
             });
@@ -472,7 +472,7 @@ describe('settingsSaver', () => {
             );
 
             expect(saveSettingsWithAllowedUrls).toHaveBeenCalledWith({ existing: 'value', newSetting: 'value' });
-            expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({ type: 'TEST_CONNECTIONS', payload: {} });
+            expect(global.browser.runtime.sendMessage).toHaveBeenCalledWith({ type: 'TEST_CONNECTIONS', payload: {} });
             expect(statusDiv.className).toBe('success');
         });
 
@@ -534,7 +534,7 @@ describe('settingsSaver', () => {
             (getSettings as any).mockResolvedValue({});
             (extractSettingsFromInputs as any).mockReturnValue({});
             (saveSettingsWithAllowedUrls as any).mockResolvedValue(undefined);
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({
                 obsidian: { success: false, message: 'Failed to fetch' },
                 ai: { success: false, message: 'Failed' },
             });
@@ -563,7 +563,7 @@ describe('settingsSaver', () => {
             (getSettings as any).mockResolvedValue({ oldKey: 'oldValue' });
             (extractSettingsFromInputs as any).mockReturnValue({ newKey: 'newValue' });
             (saveSettingsWithAllowedUrls as any).mockResolvedValue(undefined);
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({
                 obsidian: { success: true, message: 'OK' },
                 ai: { success: true, message: 'OK' },
             });
@@ -593,7 +593,7 @@ describe('settingsSaver', () => {
             (getSettings as any).mockResolvedValue({});
             (extractSettingsFromInputs as any).mockReturnValue({});
             (saveSettingsWithAllowedUrls as any).mockResolvedValue(undefined);
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({
                 obsidian: { success: true, message: 'OK' },
                 ai: { success: true, message: 'OK' },
             });
@@ -868,13 +868,13 @@ describe('settingsSaver', () => {
 
     describe('runConnectionTest edge cases', () => {
         it('should propagate when sendMessage throws', async () => {
-            (global.chrome.runtime.sendMessage as any).mockRejectedValue(new Error('Extension error'));
+            (global.browser.runtime.sendMessage as any).mockRejectedValue(new Error('Extension error'));
 
             await expect(runConnectionTest()).rejects.toThrow('Extension error');
         });
 
         it('should handle ai message being an empty string', async () => {
-            (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+            (global.browser.runtime.sendMessage as any).mockResolvedValue({
                 obsidian: { success: true, message: 'OK' },
                 ai: { success: false, message: '' },
             });

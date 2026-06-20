@@ -46,13 +46,13 @@ describe('localeUtils', () => {
       expect(getUserLocale()).toBe('ja');
     });
 
-    it('chrome.i18nが未定義の場合はフォールバックを返す', () => {
+    it('browser.i18nが未定義の場合はフォールバックを返す', () => {
       global.chrome = undefined as any;
       const result = getUserLocale();
       expect(result).toBe('en-US');
     });
 
-    it('chrome.i18n.getUILanguageが未定義の場合はフォールバックを返す', () => {
+    it('browser.i18n.getUILanguageが未定義の場合はフォールバックを返す', () => {
       global.chrome = { i18n: {} } as any;
       expect(getUserLocale()).toBe('en-US');
     });

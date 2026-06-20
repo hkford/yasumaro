@@ -65,8 +65,8 @@ describe('isValidNotificationUrl', () => {
     expect(isValidNotificationUrl('not-a-url')).toBe(false);
   });
 
-  it('accepts chrome-extension: URLs', () => {
-    expect(isValidNotificationUrl('chrome-extension://abcdef/popup.html')).toBe(true);
+  it('accepts browser-extension: URLs', () => {
+    expect(isValidNotificationUrl('browser-extension://abcdef/popup.html')).toBe(true);
   });
 });
 

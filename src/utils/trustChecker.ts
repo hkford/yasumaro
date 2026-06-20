@@ -64,7 +64,7 @@ export class TrustChecker {
    */
   async loadAlertSettings(): Promise<void> {
     try {
-      const settings = await chrome.storage.local.get({
+      const settings = await browser.storage.local.get({
         [StorageKeys.ALERT_FINANCE]: DEFAULT_ALERT_CONFIG.alertFinance,
         [StorageKeys.ALERT_SENSITIVE]: DEFAULT_ALERT_CONFIG.alertSensitive,
         [StorageKeys.ALERT_UNVERIFIED]: DEFAULT_ALERT_CONFIG.alertUnverified,
@@ -120,7 +120,7 @@ export class TrustChecker {
     }
 
     if (Object.keys(updates).length > 0) {
-      await chrome.storage.local.set(updates);
+      await browser.storage.local.set(updates);
       logDebug('TrustChecker', { updates }, 'Alert settings saved');
     }
   }
@@ -283,7 +283,7 @@ export class TrustChecker {
    * Safety Modeを取得
    */
   async getSafetyMode(): Promise<SafetyMode> {
-    const settings = await chrome.storage.local.get({
+    const settings = await browser.storage.local.get({
       [StorageKeys.SAFETY_MODE]: 'balanced'
     });
     return settings[StorageKeys.SAFETY_MODE] as SafetyMode || 'balanced';
@@ -293,7 +293,7 @@ export class TrustChecker {
    * Safety Modeを設定
    */
   async setSafetyMode(mode: SafetyMode): Promise<void> {
-    await chrome.storage.local.set({ [StorageKeys.SAFETY_MODE]: mode });
+    await browser.storage.local.set({ [StorageKeys.SAFETY_MODE]: mode });
 
     // Safety Mode に応じて Tranco Tier も同期
     const tierMap: Record<SafetyMode, TrancoTier> = {
@@ -304,7 +304,7 @@ export class TrustChecker {
 
     const tier = tierMap[mode];
     if (tier) {
-      await chrome.storage.local.set({ [StorageKeys.TRANCO_TIER]: tier });
+      await browser.storage.local.set({ [StorageKeys.TRANCO_TIER]: tier });
     }
 
     logInfo('TrustChecker', { mode, tier }, `Safety mode set to ${mode} (Tranco tier: ${tier})`);
@@ -314,7 +314,7 @@ export class TrustChecker {
    * Tranco Tierを取得
    */
   async getTrancoTier(): Promise<TrancoTier> {
-    const settings = await chrome.storage.local.get({
+    const settings = await browser.storage.local.get({
       [StorageKeys.TRANCO_TIER]: 'top10k'
     });
     return settings[StorageKeys.TRANCO_TIER] as TrancoTier || 'top10k';

@@ -14,11 +14,11 @@ describe('loader.ts', () => {
     vi.clearAllMocks();
     vi.spyOn(Date, 'now').mockReturnValue(1000000);
 
-    getURLSpy = vi.spyOn((globalThis as any).chrome.runtime, 'getURL');
-    storageGetSpy = vi.spyOn((globalThis as any).chrome.storage.local, 'get');
+    getURLSpy = vi.spyOn((globalThis as any).browser.runtime, 'getURL');
+    storageGetSpy = vi.spyOn((globalThis as any).browser.storage.local, 'get');
     // Ensure a clean sendMessage mock so previous test mutations don't leak
     const cleanSendMessage = vi.fn();
-    (globalThis as any).chrome.runtime.sendMessage = cleanSendMessage;
+    (globalThis as any).browser.runtime.sendMessage = cleanSendMessage;
     sendMessageSpy = cleanSendMessage;
     warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
@@ -67,8 +67,8 @@ describe('loader.ts', () => {
       expect(storageGetSpy).not.toHaveBeenCalled();
     });
 
-    it('skips chrome-extension:// URLs', async () => {
-      await importLoader('chrome-extension://abc123/popup.html');
+    it('skips browser-extension:// URLs', async () => {
+      await importLoader('browser-extension://abc123/popup.html');
       expect(getURLSpy).not.toHaveBeenCalled();
       expect(storageGetSpy).not.toHaveBeenCalled();
     });
@@ -337,9 +337,9 @@ describe('loader.ts', () => {
   });
 
   describe('IIFE guard conditions', () => {
-    it('does not execute IIFE when chrome.runtime.getURL is missing', async () => {
-      const origGetURL = (globalThis as any).chrome.runtime.getURL;
-      (globalThis as any).chrome.runtime.getURL = undefined;
+    it('does not execute IIFE when browser.runtime.getURL is missing', async () => {
+      const origGetURL = (globalThis as any).browser.runtime.getURL;
+      (globalThis as any).browser.runtime.getURL = undefined;
       const dom = new JSDOM('<!DOCTYPE html><html></html>');
       globalThis.window = {
         location: { href: 'https://example.com/page' },
@@ -348,7 +348,7 @@ describe('loader.ts', () => {
       globalThis.document = dom.window.document as any;
       await import(LOADER_PATH);
       await new Promise((r) => setTimeout(r, 50));
-      (globalThis as any).chrome.runtime.getURL = origGetURL;
+      (globalThis as any).browser.runtime.getURL = origGetURL;
       expect(getURLSpy).not.toHaveBeenCalled();
     });
 

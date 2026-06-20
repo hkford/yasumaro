@@ -2,7 +2,7 @@
 /**
  * extractor.ts core function tests
  * Tests for exported state variables, extractPageContent, and init behavior.
- * The module-level chrome.runtime guard allows safe import in jsdom.
+ * The module-level browser.runtime guard allows safe import in jsdom.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
@@ -126,9 +126,9 @@ describe('init', () => {
     beforeEach(() => {
         document.body.innerHTML = '';
         vi.clearAllMocks();
-        // loadSettings() はコールバック形式で chrome.storage.local.get を呼ぶ
+        // loadSettings() はコールバック形式で browser.storage.local.get を呼ぶ
         // モックがコールバックを即座に呼ぶよう設定
-        (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
+        (browser.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(
             (_keys: unknown, callback?: (result: Record<string, unknown>) => void) => {
                 if (typeof callback === 'function') callback({});
                 return Promise.resolve({});

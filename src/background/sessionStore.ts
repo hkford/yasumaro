@@ -17,11 +17,11 @@ export class SessionStore {
   async get<T>(key: string): Promise<T | null> {
     try {
       if (chrome?.storage?.local) {
-        const result = await chrome.storage.local.get(key);
+        const result = await browser.storage.local.get(key);
         return (result[key] as T) ?? null;
       }
     } catch {
-      // chrome.storage.local unavailable
+      // browser.storage.local unavailable
     }
     return null;
   }
@@ -80,14 +80,14 @@ export class SessionStore {
           for (const [key, value] of items) {
             obj[key] = value;
           }
-          await chrome.storage.local.set(obj);
+          await browser.storage.local.set(obj);
         }
         if (keysToDelete.size > 0) {
-          await chrome.storage.local.remove(Array.from(keysToDelete));
+          await browser.storage.local.remove(Array.from(keysToDelete));
         }
       }
     } catch {
-      // chrome.storage.local unavailable or quota exceeded
+      // browser.storage.local unavailable or quota exceeded
       // フラッシュに失敗した場合はキューに戻してリトライ
       for (const [key, value] of items) {
         this.writeQueue.set(key, value);

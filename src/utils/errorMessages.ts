@@ -31,20 +31,20 @@ export type ErrorTypeValues = typeof ErrorType[keyof typeof ErrorType];
 const getUserMessageForType = (errorType: ErrorTypeValues): string => {
     switch (errorType) {
         case ErrorType.NETWORK:
-            return chrome.i18n.getMessage('errorNetwork') || 'A network error occurred.';
+            return browser.i18n.getMessage('errorNetwork') || 'A network error occurred.';
         case ErrorType.AUTH:
-            return chrome.i18n.getMessage('errorAuth') || 'An authentication error occurred.';
+            return browser.i18n.getMessage('errorAuth') || 'An authentication error occurred.';
         case ErrorType.VALIDATION:
-            return chrome.i18n.getMessage('errorValidation') || 'Invalid input.';
+            return browser.i18n.getMessage('errorValidation') || 'Invalid input.';
         case ErrorType.NOT_FOUND:
-            return chrome.i18n.getMessage('errorNotFound') || 'Resource not found.';
+            return browser.i18n.getMessage('errorNotFound') || 'Resource not found.';
         case ErrorType.RATE_LIMIT:
-            return chrome.i18n.getMessage('errorRateLimit') || 'Request limit reached.';
+            return browser.i18n.getMessage('errorRateLimit') || 'Request limit reached.';
         case ErrorType.SERVER:
-            return chrome.i18n.getMessage('errorServer') || 'A server error occurred.';
+            return browser.i18n.getMessage('errorServer') || 'A server error occurred.';
         case ErrorType.UNKNOWN:
         default:
-            return chrome.i18n.getMessage('errorGeneric') || 'An error occurred.';
+            return browser.i18n.getMessage('errorGeneric') || 'An error occurred.';
     }
 };
 
@@ -197,7 +197,7 @@ export function convertKnownErrorMessage(errorMessage: string): string {
 
     for (const { pattern, messageKey } of knownPatterns) {
         if (pattern.test(lowerMessage)) {
-            return chrome.i18n.getMessage(messageKey) || `Error: ${pattern}`;
+            return browser.i18n.getMessage(messageKey) || `Error: ${pattern}`;
         }
     }
 

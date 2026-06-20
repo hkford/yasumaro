@@ -60,7 +60,7 @@ export const saveToObsidianStep = async (
     addLog(LogType.INFO, 'Saved to Obsidian', { title, url });
 
     // Create notification after successful save
-    const notificationTitle = chrome.i18n.getMessage('saveToObsidian') || 'Saved to Obsidian';
+    const notificationTitle = browser.i18n.getMessage('saveToObsidian') || 'Saved to Obsidian';
     NotificationHelper.notifySuccess(notificationTitle, `Saved: ${title}`);
 
     return { ...context, obsidianDuration };

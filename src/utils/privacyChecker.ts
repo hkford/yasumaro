@@ -27,7 +27,7 @@ export function isPrivacyInfo(value: unknown): value is PrivacyInfo {
  * 詳細な判定基準と技術的根拠については以下を参照:
  * dev-docs/ADR/2026-02-21-privacy-detection-logic-refinement.md
  */
-export function checkPrivacy(headers: chrome.webRequest.HttpHeader[]): PrivacyInfo {
+export function checkPrivacy(headers: any[]): PrivacyInfo {
   const timestamp = Date.now();
 
   // 1. Cache-Control チェック（最優先）
@@ -116,10 +116,10 @@ export function checkPrivacy(headers: chrome.webRequest.HttpHeader[]): PrivacyIn
   };
 }
 
-function findHeader(headers: chrome.webRequest.HttpHeader[], name: string): chrome.webRequest.HttpHeader | undefined {
+function findHeader(headers: browser.webRequest.HttpHeader[], name: string): browser.webRequest.HttpHeader | undefined {
   return headers.find(h => h.name?.toLowerCase() === name.toLowerCase());
 }
 
-function hasHeader(headers: chrome.webRequest.HttpHeader[], name: string): boolean {
+function hasHeader(headers: browser.webRequest.HttpHeader[], name: string): boolean {
   return findHeader(headers, name) !== undefined;
 }

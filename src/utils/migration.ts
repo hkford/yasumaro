@@ -60,14 +60,14 @@ const MIGRATION_BACKUP_RETENTION = 7 * 24 * 60 * 60 * 1000; // 7日
  * @returns {Promise<void>}
  */
 async function createMigrationBackup(key: string): Promise<void> {
-  const result = await chrome.storage.local.get([key]);
+  const result = await browser.storage.local.get([key]);
   const originalData = (result[key] as OldFormat | undefined) || null;
   const backup: MigrationBackup = {
     timestamp: Date.now(),
     originalData,
     checksum: computeChecksum(originalData)
   };
-  await chrome.storage.local.set({ [MIGRATION_BACKUP_KEY]: backup });
+  await browser.storage.local.set({ [MIGRATION_BACKUP_KEY]: backup });
   console.log('[Migration] Backup created with checksum:', backup.checksum);
 }
 
@@ -77,7 +77,7 @@ async function createMigrationBackup(key: string): Promise<void> {
  * @returns {Promise<boolean>} 復元成功時true
  */
 export async function restoreFromMigrationBackup(key: string): Promise<boolean> {
-  const result = await chrome.storage.local.get([MIGRATION_BACKUP_KEY]);
+  const result = await browser.storage.local.get([MIGRATION_BACKUP_KEY]);
   const backup = result[MIGRATION_BACKUP_KEY] as MigrationBackup | undefined;
 
   if (!backup || !backup.originalData) {
@@ -91,7 +91,7 @@ export async function restoreFromMigrationBackup(key: string): Promise<boolean> 
     throw new Error('[Migration] Rollback failed: data integrity check failed');
   }
 
-  await chrome.storage.local.set({ [key]: backup.originalData });
+  await browser.storage.local.set({ [key]: backup.originalData });
   console.warn('[Migration] Rolled back from backup', key, 'at:', backup.timestamp);
   return true;
 }
@@ -101,11 +101,11 @@ export async function restoreFromMigrationBackup(key: string): Promise<boolean> 
  * @returns {Promise<void>}
  */
 async function cleanupOldBackups(): Promise<void> {
-  const result = await chrome.storage.local.get([MIGRATION_BACKUP_KEY]);
+  const result = await browser.storage.local.get([MIGRATION_BACKUP_KEY]);
   const backup = result[MIGRATION_BACKUP_KEY] as MigrationBackup | undefined;
 
   if (backup && (Date.now() - backup.timestamp) > MIGRATION_BACKUP_RETENTION) {
-    await chrome.storage.local.remove([MIGRATION_BACKUP_KEY]);
+    await browser.storage.local.remove([MIGRATION_BACKUP_KEY]);
     console.log('[Migration] Cleaned up old backup');
   }
 }
@@ -156,7 +156,7 @@ export async function migrateUblockSettings(): Promise<boolean> {
   // 古いバックアップのクリーンアップ
   await cleanupOldBackups();
 
-  const result = await chrome.storage.local.get([UBLOCK_RULES_KEY]);
+  const result = await browser.storage.local.get([UBLOCK_RULES_KEY]);
   const ublockRules = result[UBLOCK_RULES_KEY] as OldFormat;
 
   // If already in new format (and NOT in old format) or no data exists, nothing to do
@@ -171,10 +171,10 @@ export async function migrateUblockSettings(): Promise<boolean> {
 
     // マイグレーション実行
     const newRules = migrateToLightweightFormat(ublockRules);
-    await chrome.storage.local.set({ [UBLOCK_RULES_KEY]: newRules });
+    await browser.storage.local.set({ [UBLOCK_RULES_KEY]: newRules });
 
     // 成功時はバックアップを削除
-    await chrome.storage.local.remove([MIGRATION_BACKUP_KEY]);
+    await browser.storage.local.remove([MIGRATION_BACKUP_KEY]);
     console.log('[Migration] Successfully migrated uBlock rules');
 
     return true;

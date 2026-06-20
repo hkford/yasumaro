@@ -29,7 +29,7 @@ export interface OpfsCapabilities {
  * VFS strategy chosen for the current environment.
  * - `opfs-sync-worker`: 案A — Worker + OPFS SyncAccessHandle (preferred, high performance)
  * - `opfs-async-main`:  案B — main-thread async OPFS (no Worker)
- * - `fallback`:         chrome.storage.local FallbackStorage (OPFS unavailable)
+ * - `fallback`:         browser.storage.local FallbackStorage (OPFS unavailable)
  */
 export type VfsStrategy = 'opfs-sync-worker' | 'opfs-async-main' | 'fallback';
 

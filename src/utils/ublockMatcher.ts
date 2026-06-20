@@ -44,7 +44,7 @@ class RuleIndex {
     if (shouldProcessBlockRules && rules.blockRules) {
       // Handle blockRules (old format)
       for (const rule of rules.blockRules) {
-        if (!rule.domain) continue;
+        if (typeof rule === 'string' || !rule.domain) continue;
         // Normalize to RuleWithDomain
         const ruleObj: RuleWithDomain = {
           domain: rule.domain,
@@ -83,7 +83,7 @@ class RuleIndex {
     if (shouldProcessExceptionRules && rules.exceptionRules) {
       // Handle exceptionRules (old format)
       for (const rule of rules.exceptionRules) {
-        if (!rule.domain) continue;
+        if (typeof rule === 'string' || !rule.domain) continue;
         const ruleObj: RuleWithDomain = {
           domain: rule.domain,
           options: rule.options || {}

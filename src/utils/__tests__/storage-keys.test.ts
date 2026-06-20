@@ -11,7 +11,7 @@ describe('getSettings key refinement', () => {
   });
 
   test('StorageKeysのみを取得する', async () => {
-    await chrome.storage.local.set({ extra_key: 'should_not', another_junk: 123 });
+    await browser.storage.local.set({ extra_key: 'should_not', another_junk: 123 });
     clearSettingsCache();
 
     const settings = await getSettings();
@@ -49,7 +49,7 @@ describe('getSettings key refinement', () => {
   });
 
   test('保存した値が正しく取得できる', async () => {
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
       [StorageKeys.OBSIDIAN_API_KEY]: 'my-api-key',
       [StorageKeys.OBSIDIAN_PORT]: '8000'
     });

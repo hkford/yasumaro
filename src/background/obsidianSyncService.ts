@@ -28,7 +28,7 @@ export class ObsidianSyncService {
    */
   async isConfigured(): Promise<boolean> {
     try {
-      const result = await chrome.storage.local.get(StorageKeys.OBSIDIAN_API_KEY);
+      const result = await browser.storage.local.get(StorageKeys.OBSIDIAN_API_KEY);
       const key = result[StorageKeys.OBSIDIAN_API_KEY];
       return typeof key === 'string' && key.length >= 16;
     } catch {

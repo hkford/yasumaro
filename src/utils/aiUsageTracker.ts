@@ -21,7 +21,7 @@ export async function checkRateLimit(): Promise<{
 }> {
   const now = Date.now();
 
-  const result = await chrome.storage.local.get([
+  const result = await browser.storage.local.get([
     StorageKeys.AI_RATE_LIMIT_WINDOW_START,
     StorageKeys.AI_RATE_LIMIT_COUNT
   ]);
@@ -31,7 +31,7 @@ export async function checkRateLimit(): Promise<{
 
   // ウィンドウがリセットされるか、新規ウィンドウ
   if (!windowStart || now - windowStart > RATE_LIMIT_WINDOW_MS) {
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
       [StorageKeys.AI_RATE_LIMIT_WINDOW_START]: now,
       [StorageKeys.AI_RATE_LIMIT_COUNT]: 0
     });
@@ -62,7 +62,7 @@ export async function checkRateLimit(): Promise<{
   }
 
   // カウント増加
-  await chrome.storage.local.set({
+  await browser.storage.local.set({
     [StorageKeys.AI_RATE_LIMIT_COUNT]: count + 1
   });
 
@@ -95,7 +95,7 @@ function getCurrentMonth(): string {
  * 月次使用状況を取得
  */
 export async function getMonthlyUsage(): Promise<AIUsageStats> {
-  const result = await chrome.storage.local.get([
+  const result = await browser.storage.local.get([
     StorageKeys.AI_USAGE_MONTH,
     StorageKeys.AI_USAGE_TOKENS_SENT,
     StorageKeys.AI_USAGE_TOKENS_RECEIVED,
@@ -129,7 +129,7 @@ export async function getMonthlyUsage(): Promise<AIUsageStats> {
  */
 async function resetMonthlyUsage(): Promise<void> {
   const currentMonth = getCurrentMonth();
-  await chrome.storage.local.set({
+  await browser.storage.local.set({
     [StorageKeys.AI_USAGE_MONTH]: currentMonth,
     [StorageKeys.AI_USAGE_TOKENS_SENT]: 0,
     [StorageKeys.AI_USAGE_TOKENS_RECEIVED]: 0,
@@ -146,7 +146,7 @@ export async function recordUsage(
 ): Promise<void> {
   const usage = await getMonthlyUsage();
 
-  await chrome.storage.local.set({
+  await browser.storage.local.set({
     [StorageKeys.AI_USAGE_TOKENS_SENT]: usage.tokensSent + tokensSent,
     [StorageKeys.AI_USAGE_TOKENS_RECEIVED]: usage.tokensReceived + tokensReceived,
     [StorageKeys.AI_USAGE_REQUEST_COUNT]: usage.requestCount + 1

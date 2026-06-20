@@ -61,7 +61,7 @@ export async function initPrivacyConsent(): Promise<void> {
 
 async function getConsentDeniedCount(): Promise<number> {
     try {
-        const result = await chrome.storage.local.get(StorageKeys.PRIVACY_CONSENT_DENIED_COUNT);
+        const result = await browser.storage.local.get(StorageKeys.PRIVACY_CONSENT_DENIED_COUNT);
         return Number(result[StorageKeys.PRIVACY_CONSENT_DENIED_COUNT] ?? 0);
     } catch {
         return 0;
@@ -70,7 +70,7 @@ async function getConsentDeniedCount(): Promise<number> {
 
 async function getLastConsentDenialTime(): Promise<number | null> {
     try {
-        const result = await chrome.storage.local.get(StorageKeys.PRIVACY_CONSENT_LAST_DENIAL_TIME);
+        const result = await browser.storage.local.get(StorageKeys.PRIVACY_CONSENT_LAST_DENIAL_TIME);
         return (result[StorageKeys.PRIVACY_CONSENT_LAST_DENIAL_TIME] as number) ?? null;
     } catch {
         return null;
@@ -80,7 +80,7 @@ async function getLastConsentDenialTime(): Promise<number | null> {
 async function incrementConsentDeniedCount(): Promise<number> {
     const current = await getConsentDeniedCount();
     const next = current + 1;
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
         [StorageKeys.PRIVACY_CONSENT_DENIED_COUNT]: next,
         [StorageKeys.PRIVACY_CONSENT_LAST_DENIAL_TIME]: Date.now(),
     });
@@ -108,7 +108,7 @@ function showPrivacyConsentModal(): void {
 
     // プライバシーポリシーリンク設定
     if (policyBtn) {
-        policyBtn.href = chrome.runtime.getURL('permissions.html');
+        policyBtn.href = browser.runtime.getURL('permissions.html');
         policyBtn.setAttribute(
             'aria-label',
             getMessage('viewFullPolicy') || 'View Full Privacy Policy'
@@ -246,7 +246,7 @@ export function setupPrivacyConsentListeners(): void {
     if (policyBtn) {
         policyBtn.addEventListener('click', (e: MouseEvent) => {
             e.preventDefault();
-            chrome.tabs.create({ url: policyBtn.href });
+            browser.tabs.create({ url: policyBtn.href });
         });
     }
 }

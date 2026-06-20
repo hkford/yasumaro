@@ -1,7 +1,7 @@
 /**
  * TypeScript型安全メッセージパッシングの定義
  *
- * このファイルは、chrome.runtime.sendMessage 等のメッセージパッシングを
+ * このファイルは、browser.runtime.sendMessage 等のメッセージパッシングを
  * TypeScriptのdiscriminated unionsで型安全にするための定義を提供します。
  */
 
@@ -33,36 +33,36 @@ export function isMaskedItem(item: unknown): item is MaskedItem {
   if (typeof item !== 'object' || item === null || Array.isArray(item)) {
     return false;
   }
-  
-  // Cast to Record<string, unknown> to safely access object properties
-  const maskedItem: Record<string, unknown> = item as Record<string, unknown>;
-  
+
+  // Cast to a generic object to safely access properties for type checking
+  const maskedItem = item as Record<string, string | number | undefined>;
+
   // Required type property - must be a string and one of the known types
   if (!('type' in maskedItem) || typeof maskedItem.type !== 'string') {
     return false;
   }
-  
+
   // Validate type is one of the known MaskedItem types
   const validTypes = ['email', 'creditCard', 'phoneJp', 'myNumber', 'bankAccount', 'price'];
   if (!validTypes.includes(maskedItem.type)) {
     return false;
   }
-  
+
   // Optional position property
   if ('position' in maskedItem && maskedItem.position !== undefined && typeof maskedItem.position !== 'string') {
     return false;
   }
-  
+
   // Optional original property
   if ('original' in maskedItem && maskedItem.original !== undefined && typeof maskedItem.original !== 'string') {
     return false;
   }
-  
+
   // Optional index property
   if ('index' in maskedItem && maskedItem.index !== undefined && typeof maskedItem.index !== 'number') {
     return false;
   }
-  
+
   return true;
 }
 
@@ -282,9 +282,9 @@ export function isErrorResponse(response: unknown): response is ErrorResponse {
 // ============================================================================
 
 /**
- * chrome.runtime.MessageSender からコンテキスト情報を抽出
+ * browser.runtime.MessageSender からコンテキスト情報を抽出
  */
-export function extractMessageContent(sender: chrome.runtime.MessageSender): MessageContext {
+export function extractMessageContent(sender: browser.runtime.MessageSender): MessageContext {
   const tabId = sender.tab?.id;
   const tabUrl = sender.tab?.url;
 
@@ -330,7 +330,7 @@ export async function sendServiceWorkerMessage<T extends ServiceWorkerRequest['t
   type: T,
   payload: PayloadForType<T>
 ): Promise<ResponseForType<T>> {
-  const response = await chrome.runtime.sendMessage({ type, payload } as unknown);
+  const response = await browser.runtime.sendMessage({ type, payload });
 
   if (isErrorResponse(response)) {
     throw new Error(response.error);
@@ -356,10 +356,10 @@ export async function sendFromPopup<T extends ServiceWorkerRequest['type']>(
   type: T,
   payload?: PayloadForType<T>
 ): Promise<ResponseForType<T>> {
-  const response = await chrome.runtime.sendMessage(
+  const response = await browser.runtime.sendMessage(
     payload !== undefined
-      ? { type, payload } as unknown
-      : { type } as unknown
+      ? { type, payload }
+      : { type }
   );
 
   if (isErrorResponse(response)) {

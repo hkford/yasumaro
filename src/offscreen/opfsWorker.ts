@@ -183,7 +183,7 @@ async function initSqlite(): Promise<void> {
 
 /**
  * Module-level guard to avoid redundant migration attempts within the same
- * Worker lifetime (covers the case where chrome.storage is unavailable).
+ * Worker lifetime (covers the case where browser.storage is unavailable).
  */
 let migrationV2AttemptedThisSession = false;
 
@@ -192,22 +192,22 @@ async function runMigrationV2(): Promise<void> {
   migrationV2AttemptedThisSession = true;
 
   try {
-    // chrome.storage.local may not be available inside a Worker depending on the
+    // browser.storage.local may not be available inside a Worker depending on the
     // browser version and extension manifest.  We guard before each access and
     // fall back to a purely idempotent strategy:
-    //   - isMigrationDone: check chrome.storage if available; otherwise treat
+    //   - isMigrationDone: check browser.storage if available; otherwise treat
     //     the old OPFS dir absence (which readOldDbRecords already handles by
     //     returning []) as "nothing to do".
-    //   - setMigrationDone: write to chrome.storage if available; otherwise the
+    //   - setMigrationDone: write to browser.storage if available; otherwise the
     //     module-level guard + deleteOldDb ensure we don't re-migrate.
     const chromeStorageAvailable =
-      typeof chrome !== 'undefined' && chrome.storage?.local !== undefined;
+      typeof chrome !== 'undefined' && browser.storage?.local !== undefined;
 
     const result = await migrateOldOpfsDb({
       isMigrationDone: async () => {
         if (!chromeStorageAvailable) return false; // rely on old-dir absence check
         return new Promise<boolean>((resolve) => {
-          chrome.storage.local.get(StorageKeys.OPFS_MIGRATION_V2_DONE, (items) => {
+          browser.storage.local.get(StorageKeys.OPFS_MIGRATION_V2_DONE, (items) => {
             resolve(items[StorageKeys.OPFS_MIGRATION_V2_DONE] === true);
           });
         });
@@ -215,7 +215,7 @@ async function runMigrationV2(): Promise<void> {
       setMigrationDone: async () => {
         if (!chromeStorageAvailable) return;
         await new Promise<void>((resolve) => {
-          chrome.storage.local.set({ [StorageKeys.OPFS_MIGRATION_V2_DONE]: true }, resolve);
+          browser.storage.local.set({ [StorageKeys.OPFS_MIGRATION_V2_DONE]: true }, resolve);
         });
       },
       readOldRecords: readOldDbRecords,
@@ -697,5 +697,5 @@ async function handleRequest(req: RequestMessage): Promise<ResponseMessage> {
 
 self.onmessage = async (e: MessageEvent<RequestMessage>) => {
   const response = await handleRequest(e.data);
-  (self as unknown as DedicatedWorkerGlobalScope).postMessage(response);
+  (self as DedicatedWorkerGlobalScope).postMessage(response);
 };

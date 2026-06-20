@@ -1,3 +1,5 @@
+import { browser } from 'wxt/browser';
+console.log('%c[Yasumaro] Background Service Worker Initializing...', 'color: #007aff; font-weight: bold;');
 import { ObsidianClient } from './obsidianClient.js';
 import { AIClient } from './aiClient.js';
 import { RecordingLogic } from './recordingLogic.js';
@@ -64,6 +66,8 @@ import type {
     PingMessage
 } from './messageTypes.js';
 
+import { handleOffscreenMessage } from '../offscreen/offscreen.js';
+
 // ============================================================================
 // Service Worker Initialization
 // ============================================================================
@@ -76,14 +80,14 @@ import type {
 export function init(): void {
     // Migration (already async, run at startup)
     runMigration();
-    // SQLite data migration from chrome.storage.local
+    // SQLite data migration from browser.storage.local
     migrationService.run().catch((err) => {
         logError('Yasumaro migration failed', { error: String(err) }, ErrorCode.STORAGE_MIGRATION_FAILURE, 'service-worker');
     });
     // Session alarm initialization for master password timeout
     initializeSessionAlarms();
 
-    chrome.alarms.create('yasumaro-daily-purge', { periodInMinutes: 1440 });
+    browser.alarms.create('yasumaro-daily-purge', { periodInMinutes: 1440 });
 }
 
 /**
@@ -119,7 +123,7 @@ export async function ensureConfirmToken(): Promise<string> {
     if (CONFIRM_TOKEN) return CONFIRM_TOKEN;
 
     try {
-        const stored = await chrome.storage.session.get(CONFIRM_TOKEN_KEY) as Record<string, string | undefined>;
+        const stored = await browser.storage.session.get(CONFIRM_TOKEN_KEY) as Record<string, string | undefined>;
         if (stored[CONFIRM_TOKEN_KEY]) {
             CONFIRM_TOKEN = stored[CONFIRM_TOKEN_KEY] as string;
             return CONFIRM_TOKEN;
@@ -135,7 +139,7 @@ export async function ensureConfirmToken(): Promise<string> {
             .join('');
 
     try {
-        await chrome.storage.session.set({ [CONFIRM_TOKEN_KEY]: token });
+        await browser.storage.session.set({ [CONFIRM_TOKEN_KEY]: token });
     } catch {
         // Best-effort persistence; in-memory token still protects this SW lifetime.
     }
@@ -193,7 +197,7 @@ async function isRecordingAllowed(): Promise<boolean> {
  */
 export async function handleValidVisit(
     message: ValidVisitMessage,
-    sender: chrome.runtime.MessageSender,
+    sender: browser.runtime.MessageSender,
     sendResponse: (response?: unknown) => void
 ): Promise<void> {
     if (!sender.tab) {
@@ -241,8 +245,8 @@ export async function handleValidVisit(
     if (result.success && !result.skipped && sender.tab.id) {
         const savedTabId = sender.tab.id;
         autoSavedBadgeTabs.add(savedTabId);
-        chrome.action.setBadgeText({ text: '◎', tabId: savedTabId });
-        chrome.action.setBadgeBackgroundColor({ color: BADGE_COLORS.BLUE as string, tabId: savedTabId });
+        browser.action.setBadgeText({ text: '◎', tabId: savedTabId });
+        browser.action.setBadgeBackgroundColor({ color: BADGE_COLORS.BLUE, tabId: savedTabId });
     }
 
     // 自動保存モード confirm: ボタン付き通知で保存確認を促す
@@ -251,7 +255,10 @@ export async function handleValidVisit(
         const title = sender.tab.title || url;
         const reason = result.reason || 'cache-control';
         const reasonKey = `privatePageReason_${reason.replace('-', '')}`;
-        const reasonLabel = chrome.i18n.getMessage(reasonKey) || reason;
+        // WXT's getMessage expects a specific union, but reasonKey is dynamic. 
+        // We cast to string for i18n lookup to satisfy the compiler without using 'any'.
+        // Note: browser.i18n.getMessage is typed strictly in WXT.
+        const reasonLabel = (browser.i18n.getMessage as (s: string) => string)(reasonKey) || reason;
         // URLをBase64エンコードして通知IDに埋め込む（URLsafe base64 + HMAC署名）
         try {
             const notificationId = await encodeUrlSafeBase64(url);
@@ -325,7 +332,7 @@ export async function handleFetchUrl(
  */
 export async function handleManualRecord(
     message: ManualRecordMessage | PreviewRecordMessage,
-    sender: chrome.runtime.MessageSender,
+    sender: browser.runtime.MessageSender,
     sendResponse: (response?: unknown) => void
 ): Promise<void> {
     if (!(await isRecordingAllowed())) {
@@ -398,11 +405,16 @@ export async function handleManualRecord(
         sqliteClient
     );
 
+    console.log('[service-worker] handleManualRecord: starting pipeline execute', {
+        url: message.payload.url,
+        force: (message.payload as any).force,
+        skipAi
+    });
     const result = await pipeline.execute({
         title: message.payload.title,
         url: message.payload.url,
         content,
-        force: message.payload.force,
+        force: (message.payload as any).force,
         skipDuplicateCheck: true,
         previewOnly: message.type === 'PREVIEW_RECORD',
         recordType: 'manual',
@@ -426,6 +438,19 @@ export async function handleManualRecord(
     // PII保護: maskedItemsからoriginalフィールドを削除してからレスポンスを返す
     if (result.maskedItems && Array.isArray(result.maskedItems)) {
         result.maskedItems = stripPiiFromMaskedItems(result.maskedItems);
+    }
+
+    console.log('[service-worker] handleManualRecord: response built', {
+        success: result.success,
+        summaryLength: result.summary?.length
+    });
+
+    // Final sanity check for DataCloneError
+    try {
+        const test = JSON.parse(JSON.stringify(result));
+        console.log('[service-worker] handleManualRecord: result is JSON serializable');
+    } catch (e) {
+        console.error('[service-worker] handleManualRecord: result is NOT JSON serializable!', e);
     }
 
     sendResponse(result);
@@ -494,18 +519,18 @@ export async function handleSaveRecord(
  */
 export async function handleContentCleansingExecuted(
     message: ContentCleansingExecutedMessage,
-    sender: chrome.runtime.MessageSender,
+    sender: browser.runtime.MessageSender,
     sendResponse: (response?: unknown) => void
 ): Promise<void> {
     const { hardStripRemoved, keywordStripRemoved, totalRemoved } = message.payload || {};
     const tabId = sender.tab!.id!;
 
-    chrome.action.setBadgeText({ text: `C${totalRemoved || 0}`, tabId });
-    chrome.action.setBadgeBackgroundColor({ color: BADGE_COLORS.GREEN as string, tabId });
+    browser.action.setBadgeText({ text: `C${totalRemoved || 0}`, tabId });
+    browser.action.setBadgeBackgroundColor({ color: BADGE_COLORS.GREEN as string, tabId });
 
     setTimeout(() => {
         if (!autoSavedBadgeTabs.has(tabId)) {
-            chrome.action.setBadgeText({ text: '', tabId });
+            browser.action.setBadgeText({ text: '', tabId });
         }
     }, 3000);
 
@@ -530,7 +555,7 @@ export async function handleContentCleansingExecuted(
  */
 export async function handleCheckDomain(
     message: CheckDomainMessage,
-    sender: chrome.runtime.MessageSender,
+    sender: browser.runtime.MessageSender,
     sendResponse: (response?: unknown) => void
 ): Promise<void> {
     const url = sender.tab?.url || '';
@@ -638,12 +663,12 @@ export async function handlePing(
 // ============================================================================
 
 /**
- * Creates the message handler for chrome.runtime.onMessage.
+ * Creates the message handler for browser.runtime.onMessage.
  * Returns a listener function that can be tested in isolation.
  */
 export function createMessageHandler(): (
     rawMessage: unknown,
-    sender: chrome.runtime.MessageSender,
+    sender: browser.runtime.MessageSender,
     sendResponse: (response?: unknown) => void
 ) => boolean {
     return (rawMessage: unknown, sender, sendResponse) => {
@@ -769,7 +794,7 @@ export function createMessageHandler(): (
                 // DASHBOARD_SQLITE - Dashboard SQLite operations (from options page or dashboard)
                 if (message.type === 'DASHBOARD_SQLITE') {
                     // Allow from extension pages (options.html, dashboard), block from content scripts
-                    if (sender.tab && (!sender.url || !sender.url.startsWith('chrome-extension://'))) {
+                    if (sender.tab && (!sender.url || !sender.url.startsWith(browser.runtime.getURL('')))) {
                         sendResponse({ success: false, error: 'DASHBOARD_SQLITE is not allowed from content scripts' });
                         return;
                     }
@@ -778,7 +803,7 @@ export function createMessageHandler(): (
                         sqliteClient,
                         async () => {
                             // Reset progress for manual re-run via diagnostics panel
-                            await chrome.storage.local.remove([
+                            await browser.storage.local.remove([
                                 'yasumaro_migration_status',
                                 'yasumaro_migration_progress',
                             ]);
@@ -797,6 +822,8 @@ export function createMessageHandler(): (
                     sendResponse(result);
                     return;
                 }
+
+                // (Note: Firefox offscreen workaround is now handled directly in sqliteClient.ts)
 
                 sendResponse(null);
             } catch (error) {
@@ -827,31 +854,31 @@ export function handleTabRemoved(tabId: number): void {
 
 export async function handleTabActivated(activeInfo: { tabId: number }): Promise<void> {
     try {
-        const tab = await chrome.tabs.get(activeInfo.tabId);
+        const tab = await browser.tabs.get(activeInfo.tabId);
         // 自動保存バッジ表示中のタブは ◎ を維持
         if (autoSavedBadgeTabs.has(activeInfo.tabId)) {
-            chrome.action.setBadgeText({ text: '◎', tabId: activeInfo.tabId });
-            chrome.action.setBadgeBackgroundColor({ color: BADGE_COLORS.BLUE as string, tabId: activeInfo.tabId });
+            browser.action.setBadgeText({ text: '◎', tabId: activeInfo.tabId });
+            browser.action.setBadgeBackgroundColor({ color: BADGE_COLORS.BLUE as string, tabId: activeInfo.tabId });
             return;
         }
         if (!tab.url) {
-            chrome.action.setBadgeText({ text: '' });
+            browser.action.setBadgeText({ text: '' });
             return;
         }
         const normalizedUrl = HeaderDetector.normalizeUrl(tab.url);
         const privacyInfo = RecordingLogic.cacheState.privacyCache?.get(normalizedUrl);
         if (privacyInfo?.isPrivate) {
-            chrome.action.setBadgeText({ text: '!' });
-            chrome.action.setBadgeBackgroundColor({ color: BADGE_COLORS.ORANGE as string });
+            browser.action.setBadgeText({ text: '!' });
+            browser.action.setBadgeBackgroundColor({ color: BADGE_COLORS.ORANGE as string });
         } else {
-            chrome.action.setBadgeText({ text: '' });
+            browser.action.setBadgeText({ text: '' });
         }
     } catch (error) {
         await logError('Failed to update badge on tab activation', {
             tabId: activeInfo.tabId,
             error: errorMessage(error)
         }, ErrorCode.BADGE_UPDATE_FAILED, 'service-worker.ts');
-        chrome.action.setBadgeText({ text: '' });
+        browser.action.setBadgeText({ text: '' });
     }
 }
 
@@ -865,10 +892,10 @@ export function handleTabUpdated(tabId: number, changeInfo: { status?: string },
     const normalizedUrl = HeaderDetector.normalizeUrl(tab.url);
     const privacyInfo = RecordingLogic.cacheState.privacyCache?.get(normalizedUrl);
     if (privacyInfo?.isPrivate) {
-        chrome.action.setBadgeText({ text: '!', tabId });
-        chrome.action.setBadgeBackgroundColor({ color: BADGE_COLORS.ORANGE as string, tabId });
+        browser.action.setBadgeText({ text: '!', tabId });
+        browser.action.setBadgeBackgroundColor({ color: BADGE_COLORS.ORANGE as string, tabId });
     } else {
-        chrome.action.setBadgeText({ text: '', tabId });
+        browser.action.setBadgeText({ text: '', tabId });
     }
 }
 
@@ -968,28 +995,28 @@ export const handleNotificationClicked = _notificationHandlers.onClicked;
 // ============================================================================
 // Module-level initialization - register all Chrome event listeners directly
 // Guard allows this module to be imported in test environments where
-// globalThis.chrome is undefined, without causing errors.
+// browser is undefined, without causing errors.
 // ============================================================================
 
-if (typeof globalThis.chrome !== 'undefined' && chrome.tabs?.onRemoved) {
+if (typeof browser !== 'undefined' && browser.tabs?.onRemoved) {
     // Message listener
-    chrome.runtime.onMessage.addListener(createMessageHandler());
+    browser.runtime.onMessage.addListener(createMessageHandler());
 
     // Tab event listeners
-    chrome.tabs.onRemoved.addListener(handleTabRemoved);
-    chrome.tabs.onActivated.addListener(handleTabActivated);
-    chrome.tabs.onUpdated.addListener(handleTabUpdated);
+    browser.tabs.onRemoved.addListener(handleTabRemoved);
+    browser.tabs.onActivated.addListener(handleTabActivated);
+    browser.tabs.onUpdated.addListener(handleTabUpdated);
 
     // Extension lifecycle listeners
-    chrome.runtime.onInstalled.addListener(handleInstalled);
-    chrome.runtime.onStartup.addListener(handleStartup);
+    browser.runtime.onInstalled.addListener(handleInstalled);
+    browser.runtime.onStartup.addListener(handleStartup);
 
     // Notification listeners
-    chrome.notifications.onButtonClicked.addListener(handleNotificationButtonClicked);
-    chrome.notifications.onClicked.addListener(handleNotificationClicked);
+    browser.notifications.onButtonClicked.addListener(handleNotificationButtonClicked);
+    browser.notifications.onClicked.addListener(handleNotificationClicked);
 
     // Daily purge alarm
-    chrome.alarms.onAlarm.addListener((alarm) => {
+    browser.alarms.onAlarm.addListener((alarm: browser.alarms.Alarm) => {
         if (alarm.name === 'yasumaro-daily-purge') {
             handleDailyPurgeAlarm((days, max) => sqliteClient.purgeOldRecords(days, max));
         }

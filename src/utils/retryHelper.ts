@@ -51,7 +51,7 @@ const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
  */
 export interface Message {
     type: string;
-    payload?: unknown;
+    payload?: Record<string, unknown> | string | number | boolean | null;
     target?: string;
 }
 
@@ -148,16 +148,16 @@ export class ChromeMessageSender {
      * @param {Message} message
      * @returns {Promise<any>}
      */
-    #sendOnce(message: Message): Promise<any> {
+    #sendOnce(message: Message): Promise<ServiceWorkerResponse> {
         return new Promise((resolve, reject) => {
             if (!chrome?.runtime?.sendMessage) {
                 reject(new Error('Extension context invalidated'));
                 return;
             }
-            chrome.runtime.sendMessage(message, (response) => {
+            browser.runtime.sendMessage(message, (response: ServiceWorkerResponse) => {
                 // ChromeのlastErrorチェック
-                if (chrome.runtime.lastError) {
-                    reject(new Error(chrome.runtime.lastError.message));
+                if (browser.runtime.lastError) {
+                    reject(new Error(browser.runtime.lastError.message));
                     return;
                 }
 

@@ -246,7 +246,7 @@ class TrustDb {
   private async doInitialize(): Promise<void> {
     try {
       // ストレージからデータをロード（単一キーで統合）
-      const result = await chrome.storage.local.get(STORAGE_KEY);
+      const result = await browser.storage.local.get(STORAGE_KEY);
       const savedDb = result[STORAGE_KEY] as TrustDatabase | undefined;
 
       if (savedDb && savedDb.bloomFilter) {
@@ -426,7 +426,7 @@ class TrustDb {
     this.state.database.lastUpdated = new Date().toISOString();
 
     // Save the entire database atomically via optimistic lock
-    await withOptimisticLock(STORAGE_KEY, async (_currentDb) => {
+    await withOptimisticLock(STORAGE_KEY, (_currentDb) => {
       // Return the current database state; the lock handler persists it
       return this.state.database;
     });
@@ -902,7 +902,7 @@ class TrustDb {
    * 保存されている Tranco バージョンを取得
    */
   async getSavedTrancoVersion(): Promise<string | null> {
-    const result = await chrome.storage.local.get(STORAGE_KEY_TRANCO_VERSION);
+    const result = await browser.storage.local.get(STORAGE_KEY_TRANCO_VERSION);
     return result[STORAGE_KEY_TRANCO_VERSION] as string || null;
   }
 
@@ -910,7 +910,7 @@ class TrustDb {
    * Tranco バージョンを更新
    */
   async updateTrancoVersion(version: string, domains: string[]): Promise<void> {
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
       [STORAGE_KEY_TRANCO_VERSION]: version,
       [STORAGE_KEY_TRANCO_DOMAINS]: domains
     });
@@ -944,7 +944,7 @@ class TrustDb {
    * 保存された Tranco ドメインリストを取得（旧リスト保持用）
    */
   async getSavedTrancoDomains(): Promise<string[]> {
-    const result = await chrome.storage.local.get(STORAGE_KEY_TRANCO_DOMAINS);
+    const result = await browser.storage.local.get(STORAGE_KEY_TRANCO_DOMAINS);
     return result[STORAGE_KEY_TRANCO_DOMAINS] as string[] || [];
   }
 

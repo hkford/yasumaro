@@ -5,7 +5,7 @@
  * - 変更なし時は currentUrls をそのまま返す（early-return）
  * - サイズ不一致時は即座に新しい配列を返す
  * - Set 差分あり（一部URL変化）時は新しい配列を返す
- * - 内容が同一の場合は chrome.storage.local.set を不要に呼ばない
+ * - 内容が同一の場合は browser.storage.local.set を不要に呼ばない
  */
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -25,7 +25,7 @@ vi.mock('../logger.ts', () => ({
 
 import { setSavedUrlsWithTimestamps } from '../storageUrls.ts';
 
-// chrome.storage.local の呼び出しを記録するラッパー
+// browser.storage.local の呼び出しを記録するラッパー
 let setCallArgs: Array<Record<string, unknown>> = [];
 const storedData: Record<string, unknown> = {};
 

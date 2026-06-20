@@ -75,7 +75,7 @@ describe('ublockImport.js - UI Component Tests', () => {
     };
     global.FileReader = vi.fn(() => mockReaderInstance);
 
-    // Mock chrome.runtime.sendMessage
+    // Mock browser.runtime.sendMessage
     global.chrome = {
       runtime: {
         sendMessage: vi.fn()
@@ -145,7 +145,7 @@ describe('ublockImport.js - UI Component Tests', () => {
       const mockText = '||example.com^\n@@||trusted.com^';
     // @ts-expect-error - vi.fn() type narrowing issue
   
-      global.chrome.runtime.sendMessage.mockResolvedValue({
+      global.browser.runtime.sendMessage.mockResolvedValue({
         success: true,
         data: mockText,
         contentType: 'text/plain'
@@ -167,7 +167,7 @@ describe('ublockImport.js - UI Component Tests', () => {
     test('fetchFromUrl should throw error for HTTP errors', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-      global.chrome.runtime.sendMessage.mockResolvedValue({
+      global.browser.runtime.sendMessage.mockResolvedValue({
         success: false,
         error: 'HTTP 404: Not Found'
       });
@@ -256,7 +256,7 @@ describe('ublockImport.js - UI Component Tests', () => {
 
     // @ts-expect-error - vi.fn() type narrowing issue
   
-      global.chrome.runtime.sendMessage.mockResolvedValue({
+      global.browser.runtime.sendMessage.mockResolvedValue({
         success: true,
         data: '||example.com^\n||newsite.com^\n@@||trusted.com^',
         contentType: 'text/plain'
@@ -438,7 +438,7 @@ describe('ublockImport.js - UI Component Tests', () => {
 
       // Browser-specific protocols
       expect(isValidUrl('chrome://extensions')).toBe(false);
-      expect(isValidUrl('chrome-extension://abcdef/popup.html')).toBe(false);
+      expect(isValidUrl('browser-extension://abcdef/popup.html')).toBe(false);
       expect(isValidUrl('chrome://settings')).toBe(false);
       expect(isValidUrl('about:blank')).toBe(false);
       expect(isValidUrl('about:config')).toBe(false);

@@ -8,15 +8,15 @@
 /**
  * ユーザーロケールを取得します
  *
- * Chrome Extension環境内では chrome.i18n.getUILanguage() を使用します。
+ * Chrome Extension環境内では browser.i18n.getUILanguage() を使用します。
  * テスト環境などChrome APIが利用できない場合はフォールバックを返します。
  *
  * @returns {string} ユーザーロケールコード (例: 'ja', 'ja-JP', 'en-US', 'ar')
  */
 export function getUserLocale(): string {
   try {
-    if (typeof chrome !== 'undefined' && chrome.i18n && typeof chrome.i18n.getUILanguage === 'function') {
-      return chrome.i18n.getUILanguage();
+    if (typeof chrome !== 'undefined' && browser.i18n && typeof browser.i18n.getUILanguage === 'function') {
+      return browser.i18n.getUILanguage();
     }
   } catch (e) {
     // Chrome APIのアクセスに失敗した場合

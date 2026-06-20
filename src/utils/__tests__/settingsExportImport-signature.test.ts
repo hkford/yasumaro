@@ -15,8 +15,8 @@ beforeEach(() => {
     // 【モック設定】alert
     global.alert = vi.fn(() => {});
     global.confirm = vi.fn(() => false);
-    // chrome.storage.localをクリア
-    chrome.storage.local.clear();
+    // browser.storage.localをクリア
+    browser.storage.local.clear();
 });
 
 describe('設定ファイル署名強化: signature enforcement（Greenフェーズ）', () => {

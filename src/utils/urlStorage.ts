@@ -13,7 +13,7 @@ import { MAX_URL_SET_SIZE, URL_RETENTION_DAYS, MAX_CONTENT_ENTRIES } from './url
  * @returns {Promise<Set<string>>} 保存されたURLのセット
  */
 export async function getSavedUrls(): Promise<Set<string>> {
-    const result = await chrome.storage.local.get('savedUrls');
+    const result = await browser.storage.local.get('savedUrls');
     return new Set((result.savedUrls as string[]) || []);
 }
 
@@ -22,7 +22,7 @@ export async function getSavedUrls(): Promise<Set<string>> {
  * @returns {Promise<Map<string, number>>} URLからタイムスタンプへのマップ
  */
 export async function getSavedUrlsWithTimestamps(): Promise<Map<string, number>> {
-    const result = await chrome.storage.local.get('savedUrlsWithTimestamps');
+    const result = await browser.storage.local.get('savedUrlsWithTimestamps');
     const entries = (result.savedUrlsWithTimestamps as SavedUrlEntry[]) || [];
     const urlMap = new Map<string, number>();
     for (const entry of entries) {
@@ -36,7 +36,7 @@ export async function getSavedUrlsWithTimestamps(): Promise<Map<string, number>>
  * @returns {Promise<SavedUrlEntry[]>} 保存されたURLエントリの配列
  */
 export async function getSavedUrlEntries(): Promise<SavedUrlEntry[]> {
-    const result = await chrome.storage.local.get('savedUrlsWithTimestamps');
+    const result = await browser.storage.local.get('savedUrlsWithTimestamps');
     return (result.savedUrlsWithTimestamps as SavedUrlEntry[]) || [];
 }
 

@@ -519,7 +519,7 @@ export function init(): void {
     thresholdInput.addEventListener('change', async (e) => {
       const newValue = parseInt((e.target as HTMLInputElement).value, 10);
        if (newValue >= 1 && newValue <= 50) {
-         await chrome.storage.local.set({ [StorageKeys.PERMISSION_NOTIFY_THRESHOLD]: newValue });
+         await browser.storage.local.set({ [StorageKeys.PERMISSION_NOTIFY_THRESHOLD]: newValue });
          const _ = await renderPermissionSuggestList(); // 再描画
        }
     });

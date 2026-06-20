@@ -86,13 +86,13 @@ export class ManualContentFetcher {
     let createdTabId: number | undefined;
 
     try {
-      const allTabs = await chrome.tabs.query({});
+      const allTabs = await browser.tabs.query({});
       const existingTab = allTabs.find(t => t.url === url && t.id !== undefined);
       let targetTabId: number | undefined = existingTab?.id;
 
       if (!targetTabId) {
         try {
-          const newTab = await chrome.tabs.create({ url, active: false });
+          const newTab = await browser.tabs.create({ url, active: false });
           createdTabId = newTab.id;
           targetTabId = newTab.id;
         } catch (e) {
@@ -110,17 +110,17 @@ export class ManualContentFetcher {
             const listener = (tabId: number, info: { status?: string }): void => {
               if (tabId === targetTabId && info.status === 'complete') {
                 clearTimeout(timeout);
-                chrome.tabs.onUpdated.removeListener(listener);
+                browser.tabs.onUpdated.removeListener(listener);
                 resolve();
               }
             };
-            chrome.tabs.onUpdated.addListener(listener);
+            browser.tabs.onUpdated.addListener(listener);
           });
         }
       }
 
       if (targetTabId) {
-        const results = await chrome.scripting.executeScript({
+        const results = await browser.scripting.executeScript({
           target: { tabId: targetTabId },
           func: () => {
             const body = document.body;
@@ -142,7 +142,7 @@ export class ManualContentFetcher {
       );
     } finally {
       if (createdTabId !== undefined) {
-        chrome.tabs.remove(createdTabId).catch(() => {});
+        browser.tabs.remove(createdTabId).catch(() => {});
       }
     }
 

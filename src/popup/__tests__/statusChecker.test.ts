@@ -7,7 +7,7 @@ import * as storage from '../../utils/storage.js';
 const mockChromeRuntime = {
   sendMessage: vi.fn()
 };
-// Mock chrome.i18n for formatTimeAgo
+// Mock browser.i18n for formatTimeAgo
 const mockChromeI18n = {
   getMessage: vi.fn((key: string) => {
     // Default fallback values
@@ -150,7 +150,7 @@ describe('checkPageStatus', () => {
     // Reset caches
     RecordingLogic.cacheState.privacyCache = new Map();
 
-    // Mock chrome.runtime.sendMessage for privacy cache
+    // Mock browser.runtime.sendMessage for privacy cache
     mockChromeRuntime.sendMessage.mockResolvedValue({
       success: false,
       cache: []
@@ -211,7 +211,7 @@ describe('checkPageStatus', () => {
       }
     };
 
-    // Mock chrome.runtime.sendMessage to return privacy cache
+    // Mock browser.runtime.sendMessage to return privacy cache
     mockChromeRuntime.sendMessage.mockResolvedValue({
       success: true,
       cache: [[normalizedUrl, privacyInfo]]

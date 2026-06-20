@@ -120,7 +120,7 @@ export async function saveSettingsWithAllowedUrls(
  * @returns {Promise<Set<string>>} 許可されたURLのセット
  */
 export async function getAllowedUrls(ALLOWED_URLS_KEY: string): Promise<Set<string>> {
-    const result = await chrome.storage.local.get(ALLOWED_URLS_KEY);
+    const result = await browser.storage.local.get(ALLOWED_URLS_KEY);
     const urls = (result[ALLOWED_URLS_KEY] as string[]) || [];
     return new Set(urls);
 }

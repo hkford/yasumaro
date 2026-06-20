@@ -10,7 +10,7 @@ vi.stubGlobal('chrome', {
 
 describe('getCurrentTab', () => {
   it('returns tab when query succeeds', async () => {
-    const tab = { id: 1, url: 'https://example.com' } as chrome.tabs.Tab;
+    const tab = { id: 1, url: 'https://example.com' } as browser.tabs.Tab;
     mockQuery.mockResolvedValue([tab]);
     const result = await getCurrentTab();
     expect(result).toEqual(tab);
@@ -22,7 +22,7 @@ describe('getCurrentTab', () => {
     expect(result).toBeNull();
   });
 
-  it('returns null when chrome.tabs is unavailable', async () => {
+  it('returns null when browser.tabs is unavailable', async () => {
     vi.stubGlobal('chrome', {});
     const result = await getCurrentTab();
     expect(result).toBeNull();
@@ -32,15 +32,15 @@ describe('getCurrentTab', () => {
 
 describe('isRecordable', () => {
   it('returns true for http URL', () => {
-    expect(isRecordable({ url: 'http://example.com' } as chrome.tabs.Tab)).toBe(true);
+    expect(isRecordable({ url: 'http://example.com' } as browser.tabs.Tab)).toBe(true);
   });
 
   it('returns true for https URL', () => {
-    expect(isRecordable({ url: 'https://example.com' } as chrome.tabs.Tab)).toBe(true);
+    expect(isRecordable({ url: 'https://example.com' } as browser.tabs.Tab)).toBe(true);
   });
 
   it('returns false for chrome URL', () => {
-    expect(isRecordable({ url: 'chrome://extensions' } as chrome.tabs.Tab)).toBe(false);
+    expect(isRecordable({ url: 'chrome://extensions' } as browser.tabs.Tab)).toBe(false);
   });
 
   it('returns false for null tab', () => {

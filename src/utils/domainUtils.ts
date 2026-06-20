@@ -16,12 +16,12 @@ function hasUblockRules(ublockRules: unknown): boolean {
 
     const r = ublockRules as Record<string, unknown>;
     // New format: blockDomains/exceptionDomains (arrays)
-    const hasBlockDomains = Array.isArray(r['blockDomains']) && (r['blockDomains'] as unknown[]).length > 0;
-    const hasExceptionDomains = Array.isArray(r['exceptionDomains']) && (r['exceptionDomains'] as unknown[]).length > 0;
+    const hasBlockDomains = Array.isArray(r['blockDomains']) && (r['blockDomains'] as string[]).length > 0;
+    const hasExceptionDomains = Array.isArray(r['exceptionDomains']) && (r['exceptionDomains'] as string[]).length > 0;
 
     // Old format: blockRules/exceptionRules (object arrays)
-    const hasBlockRules = Array.isArray(r['blockRules']) && (r['blockRules'] as unknown[]).length > 0;
-    const hasExceptionRules = Array.isArray(r['exceptionRules']) && (r['exceptionRules'] as unknown[]).length > 0;
+    const hasBlockRules = Array.isArray(r['blockRules']) && (r['blockRules'] as object[]).length > 0;
+    const hasExceptionRules = Array.isArray(r['exceptionRules']) && (r['exceptionRules'] as object[]).length > 0;
 
     return hasBlockDomains || hasExceptionDomains || hasBlockRules || hasExceptionRules;
 }

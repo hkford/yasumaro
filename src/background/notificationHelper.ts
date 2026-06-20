@@ -5,11 +5,11 @@ export const PRIVACY_CONFIRM_NOTIFICATION_PREFIX = 'privacy-confirm-';
 
 export class NotificationHelper {
   static getIconUrl(): string {
-    return chrome.runtime.getURL('icons/icon48.png');
+    return browser.runtime.getURL('icons/icon48.png');
   }
 
   static notifySuccess(title: string, message: string): void {
-    chrome.notifications.create({
+    browser.notifications.create({
       type: 'basic',
       iconUrl: this.getIconUrl(),
       title,
@@ -18,8 +18,8 @@ export class NotificationHelper {
   }
 
   static notifyError(error: unknown): void {
-    const title = chrome.i18n.getMessage('obsidianSyncFailed') || 'Obsidian Sync Failed';
-    chrome.notifications.create({
+    const title = browser.i18n.getMessage('obsidianSyncFailed') || 'Obsidian Sync Failed';
+    browser.notifications.create({
       type: 'basic',
       iconUrl: this.getIconUrl(),
       title,
@@ -32,13 +32,13 @@ export class NotificationHelper {
    * @param notificationId - unique ID (PRIVACY_CONFIRM_NOTIFICATION_PREFIX + encoded url)
    */
   static notifyPrivacyConfirm(notificationId: string, pageTitle: string, reason: string): void {
-    const saveLabel = chrome.i18n.getMessage('notifyPrivacyConfirmSave') || '保存する';
-    const skipLabel = chrome.i18n.getMessage('notifyPrivacyConfirmSkip') || 'スキップ';
-    const title = chrome.i18n.getMessage('notifyPrivacyConfirmTitle') || 'Yasumaro';
-    const body = chrome.i18n.getMessage('notifyPrivacyConfirmBody', [pageTitle, reason])
+    const saveLabel = browser.i18n.getMessage('notifyPrivacyConfirmSave') || '保存する';
+    const skipLabel = browser.i18n.getMessage('notifyPrivacyConfirmSkip') || 'スキップ';
+    const title = browser.i18n.getMessage('notifyPrivacyConfirmTitle') || 'Yasumaro';
+    const body = browser.i18n.getMessage('notifyPrivacyConfirmBody', [pageTitle, reason])
       || `「${pageTitle}」にプライバシー懸念があります（${reason}）。保存しますか？`;
 
-    chrome.notifications.create(notificationId, {
+    browser.notifications.create(notificationId, {
       type: 'basic',
       iconUrl: this.getIconUrl(),
       title,

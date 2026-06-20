@@ -1,6 +1,6 @@
 /**
  * migrationService.ts
- * Migrates existing chrome.storage.local browsing data to SQLite (OPFS).
+ * Migrates existing browser.storage.local browsing data to SQLite (OPFS).
  * Designed for Phase 2 of the yasumaro SQLite migration plan.
  *
  * Pattern: src/utils/migration.ts (settings migration)
@@ -16,7 +16,7 @@ import type { BrowsingLogRecord } from '../utils/sqlite-types.js';
 const TAGS_SEPARATOR = ', ';
 
 /**
- * Map a legacy chrome.storage.local browsing entry to a SQLite BrowsingLogRecord.
+ * Map a legacy browser.storage.local browsing entry to a SQLite BrowsingLogRecord.
  * `domain` is left null so the SQLite layer derives it from the url.
  * Legacy entries have no title field, so `title` stays null.
  */
@@ -47,7 +47,7 @@ type MigrationStatus = 'pending' | 'completed' | 'fresh_install';
 
 /**
  * MigrationService handles one-time migration of legacy browsing log data
- * from chrome.storage.local into the SQLite database.
+ * from browser.storage.local into the SQLite database.
  */
 export class MigrationService {
   private sqliteClient: SqliteClient;
@@ -71,13 +71,13 @@ export class MigrationService {
       addLog(LogType.INFO, 'Migration: starting data migration', { status });
 
       // Read all legacy browsing data
-      const result = await chrome.storage.local.get('savedUrlsWithTimestamps');
+      const result = await browser.storage.local.get('savedUrlsWithTimestamps');
       const entries = (result.savedUrlsWithTimestamps as LegacyUrlEntry[]) || [];
 
       if (entries.length === 0) {
         // No data to migrate — mark as fresh install
         await this.setMigrationStatus('fresh_install');
-        await chrome.storage.local.set({ legacyStoreReadOnly: true });
+        await browser.storage.local.set({ legacyStoreReadOnly: true });
         addLog(LogType.INFO, 'Migration: no legacy data found, marked as fresh install');
         return;
       }
@@ -158,13 +158,13 @@ export class MigrationService {
 
       // Mark migration as complete
       await this.setMigrationStatus('completed');
-      await chrome.storage.local.remove(MIGRATION_PROGRESS_KEY);
-      await chrome.storage.local.set({ legacyStoreReadOnly: true });
+      await browser.storage.local.remove(MIGRATION_PROGRESS_KEY);
+      await browser.storage.local.set({ legacyStoreReadOnly: true });
 
       // Clean up legacy storage keys to free space and prevent stale reads
       const legacyKeys = ['savedUrlsWithTimestamps', 'savedUrls'];
-      const totalBytes = (await chrome.storage.local.get(legacyKeys)).length;
-      await chrome.storage.local.remove(legacyKeys);
+      const totalBytes = (await browser.storage.local.get(legacyKeys)).length;
+      await browser.storage.local.remove(legacyKeys);
       addLog(LogType.INFO, 'Migration: legacy storage keys removed', { keys: legacyKeys, totalBytes });
 
       addLog(LogType.INFO, 'Migration: completed', { totalMigrated: entries.length });
@@ -176,31 +176,31 @@ export class MigrationService {
     }
   }
 
-  /** Read the current migration status from chrome.storage.local */
+  /** Read the current migration status from browser.storage.local */
   private async getMigrationStatus(): Promise<MigrationStatus | null> {
-    const result = await chrome.storage.local.get(MIGRATION_STATUS_KEY);
+    const result = await browser.storage.local.get(MIGRATION_STATUS_KEY);
     return (result[MIGRATION_STATUS_KEY] as MigrationStatus) || null;
   }
 
   /** Persist migration status */
   private async setMigrationStatus(status: MigrationStatus): Promise<void> {
-    await chrome.storage.local.set({ [MIGRATION_STATUS_KEY]: status });
+    await browser.storage.local.set({ [MIGRATION_STATUS_KEY]: status });
   }
 
   /** Read migration progress (number of entries already migrated) */
   private async getMigrationProgress(): Promise<number> {
-    const result = await chrome.storage.local.get(MIGRATION_PROGRESS_KEY);
+    const result = await browser.storage.local.get(MIGRATION_PROGRESS_KEY);
     return (result[MIGRATION_PROGRESS_KEY] as number) || 0;
   }
 
   /** Save migration progress */
   private async setMigrationProgress(count: number): Promise<void> {
-    await chrome.storage.local.set({ [MIGRATION_PROGRESS_KEY]: count });
+    await browser.storage.local.set({ [MIGRATION_PROGRESS_KEY]: count });
   }
 }
 
 /**
- * Legacy URL entry format from chrome.storage.local.
+ * Legacy URL entry format from browser.storage.local.
  */
 interface LegacyUrlEntry {
   url: string;

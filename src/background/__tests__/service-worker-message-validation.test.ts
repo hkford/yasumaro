@@ -420,7 +420,7 @@ describe('Service Worker: メッセージ検証強化（タスク1）', () => {
 /**
  * 実装推奨事項:
  *
- * 1. service-worker.jsのchrome.runtime.onMessage.addListenerでvalidateMessageを使用
+ * 1. service-worker.jsのbrowser.runtime.onMessage.addListenerでvalidateMessageを使用
  * 2. 検証に失敗したメッセージは無視する（エラーログはログにのみ記録）
  * 3. sender.tab情報の検証（タブからのメッセージのみ許可）
  * 4. メッセージのサイズ制限（DoS対策）

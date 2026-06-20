@@ -31,8 +31,8 @@ describe('RecordingLogic', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Chrome notifications APIが存在する場合のみモック
-    if (!chrome.notifications) {
-      chrome.notifications = { create: vi.fn() };
+    if (!browser.notifications) {
+      browser.notifications = { create: vi.fn() };
     }
 
     // Problem #7: URLキャッシュを初期化
@@ -287,8 +287,8 @@ describe('RecordingLogic', () => {
       RecordingLogic.invalidatePrivacyCache();
       // 既存のmock setup
       vi.clearAllMocks();
-      if (!chrome.notifications) {
-        chrome.notifications = { create: vi.fn() };
+      if (!browser.notifications) {
+        browser.notifications = { create: vi.fn() };
       }
 
       RecordingLogic.cacheState = {
@@ -406,8 +406,8 @@ describe('RecordingLogic', () => {
 
       // 既存のmock setup
       vi.clearAllMocks();
-      if (!chrome.notifications) {
-        chrome.notifications = { create: vi.fn() };
+      if (!browser.notifications) {
+        browser.notifications = { create: vi.fn() };
       }
 
       // @ts-expect-error - vi.fn() type narrowing issue
@@ -545,8 +545,8 @@ describe('RecordingLogic', () => {
       RecordingLogic.invalidateUrlCache();
 
       // Chrome notifications APIが存在する場合のみモック
-      if (!chrome.notifications) {
-        chrome.notifications = { create: vi.fn() };
+      if (!browser.notifications) {
+        browser.notifications = { create: vi.fn() };
       }
 
       // Reset cache state
@@ -714,8 +714,8 @@ describe('RecordingLogic', () => {
       RecordingLogic.invalidateSettingsCache();
       RecordingLogic.invalidateUrlCache();
 
-      if (!chrome.notifications) {
-        chrome.notifications = { create: vi.fn() };
+      if (!browser.notifications) {
+        browser.notifications = { create: vi.fn() };
       }
 
       RecordingLogic.cacheState = {
@@ -802,8 +802,8 @@ describe('RecordingLogic', () => {
       RecordingLogic.invalidateSettingsCache();
       RecordingLogic.invalidateUrlCache();
 
-      if (!chrome.notifications) {
-        chrome.notifications = { create: vi.fn() };
+      if (!browser.notifications) {
+        browser.notifications = { create: vi.fn() };
       }
 
       RecordingLogic.cacheState = {

@@ -22,7 +22,7 @@ function getRecordCurrentPage(): (force: boolean) => Promise<void> {
 
 export async function initStatusPanel(): Promise<void> {
   try {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
     const currentTab = tabs[0];
 
     if (!currentTab?.url) {
@@ -41,8 +41,8 @@ export async function initStatusPanel(): Promise<void> {
     renderStatusPanel(status);
 
     if (currentTab.id) {
-      chrome.tabs.sendMessage(currentTab.id, { type: 'GET_CONTENT' }, (response: ContentResponse | undefined) => {
-        if (chrome.runtime.lastError || !response) return;
+      browser.tabs.sendMessage(currentTab.id, { type: 'GET_CONTENT' }, (response: ContentResponse | undefined) => {
+        if (browser.runtime.lastError || !response) return;
         updateCleansingStatus(response.cleanseStats, response.cleansedReason);
       });
     }
@@ -419,7 +419,7 @@ async function initAllUrlsPermissionBanner(): Promise<void> {
     const granted = await requestAllUrls();
     if (granted) {
       banner.classList.add('hidden');
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       if (tabs[0]?.url) {
         void updateTrustStatus(tabs[0].url);
       }

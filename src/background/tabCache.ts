@@ -31,7 +31,7 @@ export class TabCache {
         if (this.initPromise) return this.initPromise;
 
         this.initPromise = new Promise((resolve) => {
-            chrome.tabs.query({}, (tabs) => {
+            browser.tabs.query({}, (tabs) => {
                 tabs.forEach(tab => {
                     if (tab.id && tab.url && tab.url.startsWith('http')) {
                         this.cache.set(tab.id, {
@@ -76,14 +76,14 @@ export class TabCache {
     /**
      * 複数のタブを追加
      */
-    addTabs(tabs: chrome.tabs.Tab[]): void {
+    addTabs(tabs: browser.tabs.Tab[]): void {
         tabs.forEach(tab => this.add(tab));
     }
 
     /**
      * タブ情報を追加
      */
-    add(tab: chrome.tabs.Tab): void {
+    add(tab: browser.tabs.Tab): void {
         if (tab.id && tab.url && tab.url.startsWith('http')) {
             this.cache.set(tab.id, {
                 title: tab.title,

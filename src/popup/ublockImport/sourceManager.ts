@@ -49,7 +49,7 @@ export async function deleteSource(index: number, renderCallback?: (sources: Sou
 
   await saveSettings({
     [StorageKeys.UBLOCK_SOURCES]: sources,
-    [StorageKeys.UBLOCK_RULES]: mergedRules as unknown as UblockRules,
+    [StorageKeys.UBLOCK_RULES]: mergedRules,
     [StorageKeys.UBLOCK_FORMAT_ENABLED]: sources.length > 0
   }, true);
 
@@ -111,7 +111,7 @@ export async function reloadSource(index: number, fetchFromUrlCallback: (url: st
 
   await saveSettings({
     [StorageKeys.UBLOCK_SOURCES]: sources,
-    [StorageKeys.UBLOCK_RULES]: mergedRules as unknown as UblockRules
+    [StorageKeys.UBLOCK_RULES]: mergedRules
   }, true);
 
   return {
@@ -174,7 +174,7 @@ export async function saveUblockSettings(text: string, url: string | null = null
 
   await saveSettings({
     [StorageKeys.UBLOCK_SOURCES]: sources,
-    [StorageKeys.UBLOCK_RULES]: mergedRules as unknown as UblockRules,
+    [StorageKeys.UBLOCK_RULES]: mergedRules,
     [StorageKeys.UBLOCK_FORMAT_ENABLED]: true
   }, true);
 

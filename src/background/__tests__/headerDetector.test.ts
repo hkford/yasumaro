@@ -88,12 +88,12 @@ describe('HeaderDetector', () => {
     test('メインフレームのHTMLレスポンスを処理できる', () => {
       const details = {
         url: 'https://example.com/page',
-        type: 'main_frame' as chrome.webRequest.ResourceType,
+        type: 'main_frame' as browser.webRequest.ResourceType,
         responseHeaders: [
           { name: 'Content-Type', value: 'text/html; charset=utf-8' },
           { name: 'Cache-Control', value: 'private' }
         ]
-      } as chrome.webRequest.WebResponseHeadersDetails;
+      } as browser.webRequest.WebResponseHeadersDetails;
 
       HeaderDetector['onHeadersReceived'](details);
 
@@ -106,11 +106,11 @@ describe('HeaderDetector', () => {
     test('サブフレームは無視する', () => {
       const details = {
         url: 'https://example.com/iframe',
-        type: 'sub_frame' as chrome.webRequest.ResourceType,
+        type: 'sub_frame' as browser.webRequest.ResourceType,
         responseHeaders: [
           { name: 'Cache-Control', value: 'private' }
         ]
-      } as chrome.webRequest.WebResponseHeadersDetails;
+      } as browser.webRequest.WebResponseHeadersDetails;
 
       HeaderDetector['onHeadersReceived'](details);
 
@@ -120,12 +120,12 @@ describe('HeaderDetector', () => {
     test('非HTMLリソースは無視する', () => {
       const details = {
         url: 'https://example.com/image.png',
-        type: 'main_frame' as chrome.webRequest.ResourceType,
+        type: 'main_frame' as browser.webRequest.ResourceType,
         responseHeaders: [
           { name: 'Content-Type', value: 'image/png' },
           { name: 'Cache-Control', value: 'private' }
         ]
-      } as chrome.webRequest.WebResponseHeadersDetails;
+      } as browser.webRequest.WebResponseHeadersDetails;
 
       HeaderDetector['onHeadersReceived'](details);
 
@@ -135,9 +135,9 @@ describe('HeaderDetector', () => {
     test('Content-Typeがない場合もスキップする', () => {
       const details = {
         url: 'https://example.com/noct',
-        type: 'main_frame' as chrome.webRequest.ResourceType,
+        type: 'main_frame' as browser.webRequest.ResourceType,
         responseHeaders: []
-      } as chrome.webRequest.WebResponseHeadersDetails;
+      } as browser.webRequest.WebResponseHeadersDetails;
 
       HeaderDetector['onHeadersReceived'](details);
 
@@ -151,11 +151,11 @@ describe('HeaderDetector', () => {
 
       const details = {
         url: 'https://example.com/page',
-        type: 'main_frame' as chrome.webRequest.ResourceType,
+        type: 'main_frame' as browser.webRequest.ResourceType,
         responseHeaders: [
           { name: 'Content-Type', value: 'text/html' }
-        ] as chrome.webRequest.HttpHeader[]
-      } as chrome.webRequest.WebResponseHeadersDetails;
+        ] as browser.webRequest.HttpHeader[]
+      } as browser.webRequest.WebResponseHeadersDetails;
 
       expect(() => HeaderDetector['onHeadersReceived'](details)).not.toThrow();
 
@@ -192,8 +192,8 @@ describe('HeaderDetector', () => {
 
   describe('cachePrivacyInfo', () => {
     test('tabIdが0以上でプライベート検出時にバッジを設定する', async () => {
-      chrome.action.setBadgeText = vi.fn(() => Promise.resolve());
-      chrome.action.setBadgeBackgroundColor = vi.fn(() => Promise.resolve());
+      browser.action.setBadgeText = vi.fn(() => Promise.resolve());
+      browser.action.setBadgeBackgroundColor = vi.fn(() => Promise.resolve());
 
       await HeaderDetector['cachePrivacyInfo']('https://badge.com', {
         isPrivate: true,
@@ -201,12 +201,12 @@ describe('HeaderDetector', () => {
         timestamp: Date.now()
       }, 42);
 
-      expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: '!', tabId: 42 });
-      expect(chrome.action.setBadgeBackgroundColor).toHaveBeenCalled();
+      expect(browser.action.setBadgeText).toHaveBeenCalledWith({ text: '!', tabId: 42 });
+      expect(browser.action.setBadgeBackgroundColor).toHaveBeenCalled();
     });
 
     test('tabIdが-1の場合はバッジをスキップする', async () => {
-      chrome.action.setBadgeText = vi.fn(() => Promise.resolve());
+      browser.action.setBadgeText = vi.fn(() => Promise.resolve());
 
       await HeaderDetector['cachePrivacyInfo']('https://bg.com', {
         isPrivate: true,
@@ -214,23 +214,23 @@ describe('HeaderDetector', () => {
         timestamp: Date.now()
       }, -1);
 
-      expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
+      expect(browser.action.setBadgeText).not.toHaveBeenCalled();
     });
 
     test('非プライベートではバッジを設定しない', async () => {
-      chrome.action.setBadgeText = vi.fn(() => Promise.resolve());
+      browser.action.setBadgeText = vi.fn(() => Promise.resolve());
 
       await HeaderDetector['cachePrivacyInfo']('https://pub.com', {
         isPrivate: false,
         timestamp: Date.now()
       }, 1);
 
-      expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
+      expect(browser.action.setBadgeText).not.toHaveBeenCalled();
     });
 
     test('バッジ設定エラーをログに記録する', async () => {
-      chrome.action.setBadgeText = vi.fn(() => Promise.reject(new Error('Badge error')));
-      chrome.action.setBadgeBackgroundColor = vi.fn(() => Promise.resolve());
+      browser.action.setBadgeText = vi.fn(() => Promise.reject(new Error('Badge error')));
+      browser.action.setBadgeBackgroundColor = vi.fn(() => Promise.resolve());
 
       await HeaderDetector['cachePrivacyInfo']('https://err.com', {
         isPrivate: true,
@@ -251,19 +251,19 @@ describe('HeaderDetector', () => {
   });
 
   describe('initialize', () => {
-    test('chrome.webRequestが未定義の場合はエラーログを出力してreturnする', async () => {
-      const origWebRequest = chrome.webRequest;
+    test('browser.webRequestが未定義の場合はエラーログを出力してreturnする', async () => {
+      const origWebRequest = browser.webRequest;
       // @ts-expect-error
-      delete chrome.webRequest;
+      delete browser.webRequest;
 
       await HeaderDetector.initialize();
 
       expect(logError).toHaveBeenCalled();
-      chrome.webRequest = origWebRequest;
+      browser.webRequest = origWebRequest;
     });
 
     test('リスナー登録に失敗した場合はエラーログを出力する', async () => {
-      chrome.webRequest = {
+      browser.webRequest = {
         onHeadersReceived: {
           addListener: vi.fn(() => { throw new Error('Permission denied'); }),
           removeListener: vi.fn(),

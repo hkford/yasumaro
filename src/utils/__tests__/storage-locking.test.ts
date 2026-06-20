@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { saveSettings, getSettings, StorageKeys, clearEncryptionKeyCache } from '../storage.js';
 import { withOptimisticLock, resetConflictStats } from '../optimisticLock.js';
 
-// Mock chrome.storage.local
+// Mock browser.storage.local
 const mockStorage: Record<string, unknown> = {};
 
 const mockChrome = {
@@ -54,7 +54,7 @@ const mockChrome = {
     }
 };
 
-// Mock chrome.crypto
+// Mock browser.crypto
 global.crypto = {
     getRandomValues: vi.fn((arr: Uint8Array) => {
         for (let i = 0; i < arr.length; i++) {

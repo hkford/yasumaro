@@ -39,7 +39,7 @@ describe('TrustDb - Atomicity Fix', () => {
 
     it('documents expected behavior after fix', () => {
       // After fix, save() should use a single transaction:
-      // - Both STORAGE_KEY and STORAGE_KEY_BLOOM in one chrome.storage.local.set()
+      // - Both STORAGE_KEY and STORAGE_KEY_BLOOM in one browser.storage.local.set()
       // - Single withOptimisticLock call wrapping the entire save
 
       const expectedBehavior = {
@@ -80,7 +80,7 @@ describe('TrustDb - Atomicity Fix', () => {
       expect(lockCount).toBeGreaterThanOrEqual(1);
     });
 
-    it('should not contain chrome.storage.local.set inside save() method', async () => {
+    it('should not contain browser.storage.local.set inside save() method', async () => {
       const trustDbSource = await import('fs').then(fs =>
         fs.readFileSync('src/utils/trustDb/trustDb.ts', 'utf8')
       );
@@ -88,8 +88,8 @@ describe('TrustDb - Atomicity Fix', () => {
       const saveMethodMatch = trustDbSource.match(/async save\(\): Promise<void>[\s\S]*?^  \}/m);
       expect(saveMethodMatch).toBeDefined();
 
-      // withOptimisticLock のコールバック内で chrome.storage.local.set を直接呼んではいけない
-      expect(saveMethodMatch![0].includes('chrome.storage.local.set')).toBe(false);
+      // withOptimisticLock のコールバック内で browser.storage.local.set を直接呼んではいけない
+      expect(saveMethodMatch![0].includes('browser.storage.local.set')).toBe(false);
     });
   });
 });

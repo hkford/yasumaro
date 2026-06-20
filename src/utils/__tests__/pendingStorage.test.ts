@@ -19,7 +19,7 @@ vi.mock('../crypto.js', () => ({
     hashUrl: vi.fn().mockResolvedValue('mocked-hash'),
 }));
 
-// Mock chrome.storage.local
+// Mock browser.storage.local
 const mockStorage: Record<string, unknown> = {};
 
 const mockChrome = {

@@ -238,7 +238,7 @@ export class CSPSettings {
         return false;
       }
 
-      const granted = await chrome.permissions.request({
+      const granted = await browser.permissions.request({
         origins: [`https://${domain}/*`]
       });
 
@@ -270,7 +270,7 @@ export class CSPSettings {
           return false;
       }
 
-      const granted = await chrome.permissions.request({ origins });
+      const granted = await browser.permissions.request({ origins });
       return granted === true;
     } catch (error) {
       console.error(`Failed to request ${type} permission:`, error);
@@ -290,7 +290,7 @@ export class CSPSettings {
         return false;
       }
 
-      const hasPermission = await chrome.permissions.contains({
+      const hasPermission = await browser.permissions.contains({
         origins: [`https://${domain}/*`]
       });
 
@@ -318,7 +318,7 @@ export function escapeRegExp(str: string): string {
  * @returns ローカルライズされた文字列
  */
 export function i18n(key: string, placeholders?: Record<string, string>): string {
-  let message = chrome.i18n.getMessage(key);
+  let message = browser.i18n.getMessage(key);
   if (placeholders) {
     for (const [placeholder, value] of Object.entries(placeholders)) {
       // プレースホルダーをエスケープして正規表現インジェクションを防止

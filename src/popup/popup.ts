@@ -69,7 +69,7 @@ export function initTabNavigation(): void {
 // ============================================================================
 
 export function setHtmlLangDir(): void {
-    const locale = chrome.i18n.getUILanguage();
+    const locale = browser.i18n.getUILanguage();
     const langCode = locale.split('-')[0];
     document.documentElement.lang = locale;
 

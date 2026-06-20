@@ -6,7 +6,7 @@
 
 export const SKIPPED_PROTOCOLS = [
     'chrome://',
-    'chrome-extension://',
+    'browser-extension://',
     'moz-extension://',
     'edge://',
     'about:blank',

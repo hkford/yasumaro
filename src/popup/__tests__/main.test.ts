@@ -163,7 +163,7 @@ const mockChrome = {
   runtime: {
     lastError: null as any,
     sendMessage: vi.fn(),
-    getURL: vi.fn((path: string) => `chrome-extension://test-extension-id${path}`),
+    getURL: vi.fn((path: string) => `browser-extension://test-extension-id${path}`),
     onMessage: {
       addListener: vi.fn()
     }
@@ -208,13 +208,13 @@ describe('main', () => {
     // Clear all mocks before each test
     vi.clearAllMocks();
 
-    // Mock chrome.tabs.query to return empty array by default
+    // Mock browser.tabs.query to return empty array by default
     mockChrome.tabs.query.mockResolvedValue([]);
     mockChrome.runtime.sendMessage.mockResolvedValue({ success: true });
     mockChrome.permissions.contains.mockResolvedValue(true);
 
-    // Restore chrome.i18n.getMessage mock (jest.clearAllMocks clears it)
-    global.chrome.i18n.getMessage.mockImplementation((key: string, substitutions?: any) => {
+    // Restore browser.i18n.getMessage mock (jest.clearAllMocks clears it)
+    global.browser.i18n.getMessage.mockImplementation((key: string, substitutions?: any) => {
       const messages: Record<string, string> = {
         loading: 'Loading...',
         processing: 'Processing...',
@@ -390,7 +390,7 @@ describe('main', () => {
       const pageUrl = document.getElementById('pageUrl');
       const recordBtn = document.getElementById('recordBtn');
 
-      expect(favicon.src).toBe('chrome-extension://test-extension-id/_favicon/?pageUrl=https%3A%2F%2Fexample.com&size=32');
+      expect(favicon.src).toBe('browser-extension://test-extension-id/_favicon/?pageUrl=https%3A%2F%2Fexample.com&size=32');
       expect(pageTitle.textContent).toBe('Example Page');
       expect(pageUrl.textContent).toBe('https://example.com');
       expect(recordBtn.disabled).toBe(false);

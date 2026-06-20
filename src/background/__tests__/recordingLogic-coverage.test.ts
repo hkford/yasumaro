@@ -377,7 +377,7 @@ describe('RecordingLogic - getPrivacyInfoWithCache session storage fallback', ()
     logic = new RecordingLogic(makeMockObsidian(), makeMockAiClient());
   });
 
-  test('restores privacy info from chrome.storage.session on cache miss', async () => {
+  test('restores privacy info from browser.storage.session on cache miss', async () => {
     const url = 'https://example.com/private';
     const normalizedUrl = 'https://example.com/private';
     const sessionKey = 'privacyCache_' + normalizedUrl;
@@ -388,7 +388,7 @@ describe('RecordingLogic - getPrivacyInfoWithCache session storage fallback', ()
     };
 
     // Set up session storage mock to return data
-    await chrome.storage.session.set({ [sessionKey]: cachedInfo });
+    await browser.storage.session.set({ [sessionKey]: cachedInfo });
 
     const result = await logic.getPrivacyInfoWithCache(url);
 
@@ -409,14 +409,14 @@ describe('RecordingLogic - getPrivacyInfoWithCache session storage fallback', ()
     RecordingLogic.cacheState.privacyCache = new Map();
 
     // Make session.get throw
-    const originalGet = chrome.storage.session.get;
-    (chrome.storage.session.get as vi.Mock).mockRejectedValueOnce(new Error('Session error'));
+    const originalGet = browser.storage.session.get;
+    (browser.storage.session.get as vi.Mock).mockRejectedValueOnce(new Error('Session error'));
 
     const result = await logic.getPrivacyInfoWithCache('https://example.com/page');
     expect(result).toBeNull();
 
     // Restore
-    (chrome.storage.session.get as vi.Mock).mockImplementation(originalGet as any);
+    (browser.storage.session.get as vi.Mock).mockImplementation(originalGet as any);
   });
 
   test('skips session storage fallback when in-memory cache has valid entry', async () => {

@@ -24,8 +24,8 @@ function t(key: string, fallback: string, substitutions?: string | string[]): st
   }
 
   const message = subs !== undefined
-    ? chrome.i18n.getMessage(key, subs)
-    : chrome.i18n.getMessage(key);
+    ? browser.i18n.getMessage(key, subs)
+    : browser.i18n.getMessage(key);
   return message || fallback;
 }
 

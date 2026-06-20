@@ -123,7 +123,7 @@ function wireEvents(container: HTMLElement): void {
 
     try {
       // Save recording conditions
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         [StorageKeys.MIN_VISIT_DURATION]: minVisitVal,
         [StorageKeys.MIN_SCROLL_DEPTH]: minScrollVal,
         [StorageKeys.MAX_TOKENS_PER_PROMPT]: maxTokensVal,

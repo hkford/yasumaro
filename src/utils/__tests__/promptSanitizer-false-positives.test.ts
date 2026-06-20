@@ -12,7 +12,7 @@ import { vi } from 'vitest';;
 
 describe('PromptSanitizer - False Positive Detection', () => {
   beforeAll(() => {
-    // Mock chrome.runtime.id
+    // Mock browser.runtime.id
     global.chrome = {
       runtime: { id: 'test-id' }
     } as any;

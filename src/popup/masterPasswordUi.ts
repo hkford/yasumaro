@@ -151,7 +151,7 @@ async function savePassword(): Promise<void> {
     }
 
     const setStorageFn = async (key: string, value: unknown) => {
-        await chrome.storage.local.set({ [key]: value });
+        await browser.storage.local.set({ [key]: value });
     };
 
     const result = await setMasterPassword(password, setStorageFn);
@@ -226,7 +226,7 @@ async function authenticatePassword(): Promise<void> {
     }
 
     const getStorageFn = async (keys: string[]) => {
-        return chrome.storage.local.get(keys);
+        return browser.storage.local.get(keys);
     };
 
     const result = await verifyMasterPassword(password, getStorageFn);
@@ -266,7 +266,7 @@ function initMasterPasswordUi(): void {
                         return;
                     }
 
-                    await chrome.storage.local.remove([
+                    await browser.storage.local.remove([
                         'master_password_enabled',
                         'master_password_salt',
                         'master_password_hash'
@@ -353,7 +353,7 @@ function initMasterPasswordUi(): void {
 }
 
 async function loadMasterPasswordSettings(): Promise<void> {
-    const isSet = await isMasterPasswordSet(async (keys) => chrome.storage.local.get(keys));
+    const isSet = await isMasterPasswordSet(async (keys) => browser.storage.local.get(keys));
     if (masterPasswordEnabled) {
         masterPasswordEnabled.checked = isSet;
     }

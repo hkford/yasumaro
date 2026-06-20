@@ -50,7 +50,7 @@ export class TrancoConsentManager {
    */
   static async needsConsent(version: string): Promise<ConsentResult> {
     // 既に同意されているバージョンを取得
-    const result = await chrome.storage.local.get([
+    const result = await browser.storage.local.get([
       this.STORAGE_KEY_CONSENT_GRANTED,
       this.STORAGE_KEY_CONSENT_DENIED_TIMESTAMP
     ]);
@@ -84,7 +84,7 @@ export class TrancoConsentManager {
   static async recordConsent(version: string, reason?: string): Promise<void> {
     if (reason === 'deny' || reason === 'retry_later') {
       // 拒否を記録
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         [this.STORAGE_KEY_CONSENT_GRANTED]: null,
         [this.STORAGE_KEY_CONSENT_DENIED_REASON]: reason,
         [this.STORAGE_KEY_CONSENT_DENIED_TIMESTAMP]: Date.now()
@@ -93,7 +93,7 @@ export class TrancoConsentManager {
       logInfo('TrancoConsentManager', { version, reason }, 'Tranco consent denied');
     } else {
       // 同意を記録
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         [this.STORAGE_KEY_CONSENT_GRANTED]: version,
         [this.STORAGE_KEY_CONSENT_DENIED_REASON]: null,
         [this.STORAGE_KEY_CONSENT_DENIED_TIMESTAMP]: null
@@ -107,7 +107,7 @@ export class TrancoConsentManager {
    * 旧 Tranco ドメインリストを保存（バックアップ用）
    */
   static async saveOldTrancoDomains(domains: string[]): Promise<void> {
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
       [this.STORAGE_KEY_TRANCO_DOMAINS]: domains
     });
 
@@ -118,7 +118,7 @@ export class TrancoConsentManager {
    * 保存された旧 Tranco ドメインリストを取得
    */
   static async getOldTrancoDomains(): Promise<string[]> {
-    const result = await chrome.storage.local.get(this.STORAGE_KEY_TRANCO_DOMAINS);
+    const result = await browser.storage.local.get(this.STORAGE_KEY_TRANCO_DOMAINS);
     return result[this.STORAGE_KEY_TRANCO_DOMAINS] as string[] || [];
   }
 
@@ -126,7 +126,7 @@ export class TrancoConsentManager {
    * 保存されている旧 Tranco ドメインリストを削除
    */
   static async clearOldTrancoDomains(): Promise<void> {
-    await chrome.storage.local.remove([this.STORAGE_KEY_TRANCO_DOMAINS]);
+    await browser.storage.local.remove([this.STORAGE_KEY_TRANCO_DOMAINS]);
 
     logInfo('TrancoConsentManager', {}, 'Old Tranco domains cleared');
   }
@@ -135,7 +135,7 @@ export class TrancoConsentManager {
    * 拒否理由を取得
    */
   static async getDeniedReason(): Promise<string | null> {
-    const result = await chrome.storage.local.get(this.STORAGE_KEY_CONSENT_DENIED_REASON);
+    const result = await browser.storage.local.get(this.STORAGE_KEY_CONSENT_DENIED_REASON);
     return result[this.STORAGE_KEY_CONSENT_DENIED_REASON] as string | null;
   }
 
@@ -143,7 +143,7 @@ export class TrancoConsentManager {
    * 30日経過までの残り日数を取得
    */
   static async getRetryDaysRemaining(): Promise<number | null> {
-    const result = await chrome.storage.local.get(this.STORAGE_KEY_CONSENT_DENIED_TIMESTAMP);
+    const result = await browser.storage.local.get(this.STORAGE_KEY_CONSENT_DENIED_TIMESTAMP);
     const deniedTimestamp = result[this.STORAGE_KEY_CONSENT_DENIED_TIMESTAMP] as number | null;
 
     if (!deniedTimestamp) {
@@ -160,7 +160,7 @@ export class TrancoConsentManager {
    * 同意状態をクリア（リセット用）
    */
   static async resetConsent(): Promise<void> {
-    await chrome.storage.local.remove([
+    await browser.storage.local.remove([
       this.STORAGE_KEY_CONSENT_GRANTED,
       this.STORAGE_KEY_CONSENT_DENIED_REASON,
       this.STORAGE_KEY_CONSENT_DENIED_TIMESTAMP
@@ -173,7 +173,7 @@ export class TrancoConsentManager {
    * すべての Tranco 関連設定をクリア（完全リセット用）
    */
   static async resetAll(): Promise<void> {
-    await chrome.storage.local.remove([
+    await browser.storage.local.remove([
       this.STORAGE_KEY_CONSENT_GRANTED,
       this.STORAGE_KEY_CONSENT_DENIED_REASON,
       this.STORAGE_KEY_CONSENT_DENIED_TIMESTAMP,
@@ -193,7 +193,7 @@ export class TrancoConsentManager {
     retryDaysRemaining: number | null;
     needsConsent: ConsentResult;
   }> {
-    const result = await chrome.storage.local.get([
+    const result = await browser.storage.local.get([
       this.STORAGE_KEY_CONSENT_GRANTED,
       this.STORAGE_KEY_CONSENT_DENIED_REASON,
       this.STORAGE_KEY_CONSENT_DENIED_TIMESTAMP

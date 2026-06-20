@@ -2,27 +2,27 @@
  * dashboardSqliteService.test.ts
  * Tests for dashboard SQLite service layer (message-passing proxy).
  *
- * Uses Promise-based chrome.runtime.sendMessage mock matching the
+ * Uses Promise-based browser.runtime.sendMessage mock matching the
  * production sendDashboardMessage implementation.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 /**
- * Mock chrome.runtime.sendMessage to return a controlled Promise response.
+ * Mock browser.runtime.sendMessage to return a controlled Promise response.
  * After calling this, the NEXT call to sendMessage will use the given response.
  */
 function givenResponse(response: any) {
-  (globalThis as any).chrome.runtime.sendMessage = vi.fn(
+  (globalThis as any).browser.runtime.sendMessage = vi.fn(
     (_message: any) => Promise.resolve(response),
   );
 }
 
 /**
- * Mock chrome.runtime.sendMessage to reject (simulating lastError / connection failure).
+ * Mock browser.runtime.sendMessage to reject (simulating lastError / connection failure).
  */
 function givenLastError(errorMessage: string) {
-  (globalThis as any).chrome.runtime.sendMessage = vi.fn(
+  (globalThis as any).browser.runtime.sendMessage = vi.fn(
     (_message: any) => Promise.reject(new Error(errorMessage)),
   );
 }
@@ -36,8 +36,8 @@ describe('dashboardSqliteService', () => {
     if (!(globalThis as any).chrome) {
       (globalThis as any).chrome = {};
     }
-    if (!(globalThis as any).chrome.runtime) {
-      (globalThis as any).chrome.runtime = {};
+    if (!(globalThis as any).browser.runtime) {
+      (globalThis as any).browser.runtime = {};
     }
   });
 
@@ -55,7 +55,7 @@ describe('dashboardSqliteService', () => {
 
       await queryLogs({ limit: 10, offset: 0 });
 
-      expect((globalThis as any).chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect((globalThis as any).browser.runtime.sendMessage).toHaveBeenCalledWith(
         { type: 'DASHBOARD_SQLITE', payload: { subtype: 'query', limit: 10, offset: 0 } },
       );
     });
@@ -87,7 +87,7 @@ describe('dashboardSqliteService', () => {
       givenResponse({ success: true, rows: [], total: 0 });
 
       await searchLogs('test');
-      expect((globalThis as any).chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect((globalThis as any).browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           payload: expect.objectContaining({ subtype: 'search', query: 'test', limit: 50, offset: 0 }),
         }),

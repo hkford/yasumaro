@@ -104,7 +104,7 @@ describe('SessionStore', () => {
 
   // T10
   it('storage unavailable should not throw', async () => {
-    delete (globalThis as any).chrome.storage.local;
+    delete (globalThis as any).browser.storage.local;
     expect(() => store.set('key1', 'value1')).not.toThrow();
     const value = await store.get('key1');
     expect(value).toBeNull();

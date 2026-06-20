@@ -83,7 +83,7 @@ async function initHistoryPanel(): Promise<void> {
     updateCleansingStatsPanel(state.entries);
   }
 
-  const onStorageChanged = (changes: Record<string, chrome.storage.StorageChange>, area: string): void => {
+  const onStorageChanged = (changes: Record<string, browser.storage.StorageChange>, area: string): void => {
     if (area !== 'local') return;
 
     const savedChanged = 'savedUrlsWithTimestamps' in changes;
@@ -113,7 +113,7 @@ async function initHistoryPanel(): Promise<void> {
 
     Promise.all(updatePromises).then(() => applyFilters());
   };
-  chrome.storage.onChanged.addListener(onStorageChanged);
+  browser.storage.onChanged.addListener(onStorageChanged);
 
   document.addEventListener('navigate-to-tag', (e: Event) => {
     const tag = (e as CustomEvent<string>).detail;

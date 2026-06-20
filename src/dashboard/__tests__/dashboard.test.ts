@@ -313,7 +313,7 @@ describe('setHtmlLangDir', () => {
         vi.stubGlobal('chrome', {
             ...chrome,
             i18n: {
-                ...chrome.i18n,
+                ...browser.i18n,
                 getUILanguage: vi.fn().mockReturnValue('ar'),
             },
         });
@@ -327,7 +327,7 @@ describe('setHtmlLangDir', () => {
         vi.stubGlobal('chrome', {
             ...chrome,
             i18n: {
-                ...chrome.i18n,
+                ...browser.i18n,
                 getUILanguage: vi.fn().mockReturnValue('en'),
             },
         });
@@ -341,7 +341,7 @@ describe('setHtmlLangDir', () => {
         vi.stubGlobal('chrome', {
             ...chrome,
             i18n: {
-                ...chrome.i18n,
+                ...browser.i18n,
                 getUILanguage: vi.fn().mockReturnValue('ja'),
             },
         });
@@ -355,7 +355,7 @@ describe('setHtmlLangDir', () => {
         vi.stubGlobal('chrome', {
             ...chrome,
             i18n: {
-                ...chrome.i18n,
+                ...browser.i18n,
                 getUILanguage: vi.fn().mockReturnValue('he'),
             },
         });
@@ -393,7 +393,7 @@ describe('createConnectionStatusElement', () => {
 });
 
 describe('testObsidianConnection', () => {
-    it('calls chrome.runtime.sendMessage with TEST_OBSIDIAN', async () => {
+    it('calls browser.runtime.sendMessage with TEST_OBSIDIAN', async () => {
         const sendMessage = vi.fn().mockResolvedValue({
             obsidian: { success: true, message: 'OK' }
         });
@@ -459,7 +459,7 @@ describe('testObsidianConnection', () => {
 });
 
 describe('testAiConnection', () => {
-    it('calls chrome.runtime.sendMessage with TEST_AI', async () => {
+    it('calls browser.runtime.sendMessage with TEST_AI', async () => {
         const sendMessage = vi.fn().mockResolvedValue({
             ai: { success: true, message: 'OK' }
         });

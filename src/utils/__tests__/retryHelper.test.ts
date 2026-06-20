@@ -11,7 +11,7 @@ import {
     type MessagePayload
 } from '../retryHelper.js';
 
-// Mock chrome.runtime.sendMessage
+// Mock browser.runtime.sendMessage
 global.chrome = {
     runtime: {
         sendMessage: vi.fn(),
@@ -24,7 +24,7 @@ describe('ChromeMessageSender', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        global.chrome.runtime.lastError = null;
+        global.browser.runtime.lastError = null;
         sender = new ChromeMessageSender();
     });
 
@@ -61,7 +61,7 @@ describe('ChromeMessageSender', () => {
             const mockResponse = { success: true, data: 'test' };
     // @ts-expect-error - vi.fn() type narrowing issue
   
-            chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+            browser.runtime.sendMessage.mockImplementation((message, callback) => {
                 callback(mockResponse as any);
             });
 
@@ -71,14 +71,14 @@ describe('ChromeMessageSender', () => {
             } as MessagePayload<unknown>);
 
             expect(result).toEqual(mockResponse);
-            expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
+            expect(browser.runtime.sendMessage).toHaveBeenCalledTimes(1);
         });
 
         it('ビジネスロジックエラー（success: false）でもレスポンスを返す', async () => {
             const mockResponse = { success: false, error: 'Domain blocked' };
     // @ts-expect-error - vi.fn() type narrowing issue
   
-            chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+            browser.runtime.sendMessage.mockImplementation((message, callback) => {
                 callback(mockResponse as any);
             });
 
@@ -88,20 +88,20 @@ describe('ChromeMessageSender', () => {
             } as MessagePayload<unknown>);
 
             expect(result).toEqual(mockResponse);
-            expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
+            expect(browser.runtime.sendMessage).toHaveBeenCalledTimes(1);
         });
 
         it('リトライ可能なエラーでリトライする', async () => {
             let callCount = 0;
     // @ts-expect-error - vi.fn() type narrowing issue
   
-            chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+            browser.runtime.sendMessage.mockImplementation((message, callback) => {
                 callCount++;
                 if (callCount === 1) {
-                    global.chrome.runtime.lastError = { message: 'Could not establish connection' };
+                    global.browser.runtime.lastError = { message: 'Could not establish connection' };
                     callback();
                 } else {
-                    global.chrome.runtime.lastError = null;
+                    global.browser.runtime.lastError = null;
                     callback({ success: true });
                 }
             });
@@ -118,8 +118,8 @@ describe('ChromeMessageSender', () => {
         it('最大リトライ回数を超えるとエラーをスローする', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
 
-            chrome.runtime.sendMessage.mockImplementation((message, callback) => {
-                global.chrome.runtime.lastError = { message: 'Could not establish connection' };
+            browser.runtime.sendMessage.mockImplementation((message, callback) => {
+                global.browser.runtime.lastError = { message: 'Could not establish connection' };
                 callback();
             });
 
@@ -131,14 +131,14 @@ describe('ChromeMessageSender', () => {
             ).rejects.toThrow('Could not establish connection');
 
             // 初期 + 5回リトライ = 6回
-            expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(6);
+            expect(browser.runtime.sendMessage).toHaveBeenCalledTimes(6);
         });
 
         it('非リトライ可能なエラーで即座に失敗する', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-            chrome.runtime.sendMessage.mockImplementation((message, callback) => {
-                global.chrome.runtime.lastError = { message: 'Invalid message format' };
+            browser.runtime.sendMessage.mockImplementation((message, callback) => {
+                global.browser.runtime.lastError = { message: 'Invalid message format' };
                 callback();
             });
 
@@ -146,14 +146,14 @@ describe('ChromeMessageSender', () => {
                 sender.sendMessageWithRetry({ type: 'TEST', payload: {} } as MessagePayload<unknown>)
             ).rejects.toThrow('Invalid message format');
 
-            expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
+            expect(browser.runtime.sendMessage).toHaveBeenCalledTimes(1);
         });
 
         it('レスポンス未受信エラーでリトライする', async () => {
             let callCount = 0;
     // @ts-expect-error - vi.fn() type narrowing issue
   
-            chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+            browser.runtime.sendMessage.mockImplementation((message, callback) => {
                 callCount++;
                 if (callCount === 1) {
                     callback(); // No response - これは "No response received" エラーになる
@@ -176,7 +176,7 @@ describe('ChromeMessageSender', () => {
         it('No response receivedエラーが最大リトライ後に失敗する', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
   
-            chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+            browser.runtime.sendMessage.mockImplementation((message, callback) => {
                 callback(); // Always no response - リトライ可能エラーとして扱う
             });
 
@@ -188,14 +188,14 @@ describe('ChromeMessageSender', () => {
             ).rejects.toThrow('No response received');
 
             // 初期 + 5回リトライ = 6回
-            expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(6);
+            expect(browser.runtime.sendMessage).toHaveBeenCalledTimes(6);
         });
 
         it('カスタムリトライオプションを上書きできる', async () => {
     // @ts-expect-error - vi.fn() type narrowing issue
 
-            chrome.runtime.sendMessage.mockImplementation((message, callback) => {
-                global.chrome.runtime.lastError = { message: 'Could not establish connection' };
+            browser.runtime.sendMessage.mockImplementation((message, callback) => {
+                global.browser.runtime.lastError = { message: 'Could not establish connection' };
                 callback();
             });
 
@@ -207,7 +207,7 @@ describe('ChromeMessageSender', () => {
 
             await expect(promise).rejects.toThrow();
 
-            expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(2);
+            expect(browser.runtime.sendMessage).toHaveBeenCalledTimes(2);
         });
     });
 
@@ -274,15 +274,15 @@ describe('ChromeMessageSender', () => {
             let callCount = 0;
     // @ts-expect-error - vi.fn() type narrowing issue
   
-            chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+            browser.runtime.sendMessage.mockImplementation((message, callback) => {
                 callCount++;
                 if (callCount <= 3) {
                     // 最初の3回は失敗させる
-                    global.chrome.runtime.lastError = { message: 'Could not establish connection' };
+                    global.browser.runtime.lastError = { message: 'Could not establish connection' };
                     callback();
                 } else {
                     // 4回目で成功
-                    global.chrome.runtime.lastError = null;
+                    global.browser.runtime.lastError = null;
                     callback({ success: true });
                 }
             });
@@ -314,14 +314,14 @@ describe('ChromeMessageSender', () => {
 describe('sendMessageWithRetry (factory)', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        global.chrome.runtime.lastError = null;
+        global.browser.runtime.lastError = null;
     });
 
     it('ファクトリー関数が動作する', async () => {
         const mockResponse = { success: true };
     // @ts-expect-error - vi.fn() type narrowing issue
   
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callback(mockResponse as any);
         });
 
@@ -338,12 +338,12 @@ describe('sendMessageWithRetry (factory)', () => {
         let callCount = 0;
     // @ts-expect-error - vi.fn() type narrowing issue
   
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callCount++;
             if (callCount <= 2) {
-                global.chrome.runtime.lastError = { message: 'Could not establish connection' };
+                global.browser.runtime.lastError = { message: 'Could not establish connection' };
             } else {
-                global.chrome.runtime.lastError = null;
+                global.browser.runtime.lastError = null;
             }
             callback(mockResponse as any);
         });
@@ -354,14 +354,14 @@ describe('sendMessageWithRetry (factory)', () => {
         );
 
         expect(result).toEqual(mockResponse);
-        expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(3); // 初期 + 2回リトライ
+        expect(browser.runtime.sendMessage).toHaveBeenCalledTimes(3); // 初期 + 2回リトライ
     });
 });
 
 describe('createSender (factory)', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        global.chrome.runtime.lastError = null;
+        global.browser.runtime.lastError = null;
     });
 
     it('設定されたインスタンスを作成する', () => {
@@ -374,7 +374,7 @@ describe('createSender (factory)', () => {
         const mockResponse = { success: true };
     // @ts-expect-error - vi.fn() type narrowing issue
   
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callback(mockResponse as any);
         });
 
@@ -387,10 +387,10 @@ describe('createSender (factory)', () => {
     });
 });
 
-describe('chrome.runtime.lastError patterns', () => {
+describe('browser.runtime.lastError patterns', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        global.chrome.runtime.lastError = null;
+        global.browser.runtime.lastError = null;
     });
 
     it('Receiving end does not existでリトライ', async () => {
@@ -398,12 +398,12 @@ describe('chrome.runtime.lastError patterns', () => {
         const mockResponse = { success: true };
     // @ts-expect-error - vi.fn() type narrowing issue
   
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callCount++;
             if (callCount === 1) {
-                global.chrome.runtime.lastError = { message: 'Receiving end does not exist' };
+                global.browser.runtime.lastError = { message: 'Receiving end does not exist' };
             } else {
-                global.chrome.runtime.lastError = null;
+                global.browser.runtime.lastError = null;
             }
             callback(mockResponse as any);
         });
@@ -422,12 +422,12 @@ describe('chrome.runtime.lastError patterns', () => {
         const mockResponse = { success: true };
     // @ts-expect-error - vi.fn() type narrowing issue
 
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callCount++;
             if (callCount <= 2) {
-                global.chrome.runtime.lastError = { message: 'Extension context invalidated' };
+                global.browser.runtime.lastError = { message: 'Extension context invalidated' };
             } else {
-                global.chrome.runtime.lastError = null;
+                global.browser.runtime.lastError = null;
             }
             callback(mockResponse as any);
         });
@@ -446,13 +446,13 @@ describe('chrome.runtime.lastError patterns', () => {
         const mockResponse = { success: true };
     // @ts-expect-error - vi.fn() type narrowing issue
 
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callCount++;
             if (callCount === 1) {
-                global.chrome.runtime.lastError = { message: 'The message port closed before a response was received' };
+                global.browser.runtime.lastError = { message: 'The message port closed before a response was received' };
                 callback();
             } else {
-                global.chrome.runtime.lastError = null;
+                global.browser.runtime.lastError = null;
                 callback(mockResponse as any);
             }
         });
@@ -471,13 +471,13 @@ describe('chrome.runtime.lastError patterns', () => {
         const mockResponse = { success: true };
     // @ts-expect-error - vi.fn() type narrowing issue
 
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callCount++;
             if (callCount === 1) {
-                global.chrome.runtime.lastError = { message: 'The extension context has been invalid' };
+                global.browser.runtime.lastError = { message: 'The extension context has been invalid' };
                 callback();
             } else {
-                global.chrome.runtime.lastError = null;
+                global.browser.runtime.lastError = null;
                 callback(mockResponse as any);
             }
         });
@@ -497,7 +497,7 @@ describe('exponential backoff timing', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        global.chrome.runtime.lastError = null;
+        global.browser.runtime.lastError = null;
         vi.useFakeTimers();
         sender = new ChromeMessageSender();
     });
@@ -511,13 +511,13 @@ describe('exponential backoff timing', () => {
         const mockResponse = { success: true };
     // @ts-expect-error - vi.fn() type narrowing issue
 
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callCount++;
             if (callCount <= 3) {
-                global.chrome.runtime.lastError = { message: 'Could not establish connection' };
+                global.browser.runtime.lastError = { message: 'Could not establish connection' };
                 callback();
             } else {
-                global.chrome.runtime.lastError = null;
+                global.browser.runtime.lastError = null;
                 callback(mockResponse as any);
             }
         });
@@ -553,9 +553,9 @@ describe('exponential backoff timing', () => {
         let callCount = 0;
     // @ts-expect-error - vi.fn() type narrowing issue
 
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callCount++;
-            global.chrome.runtime.lastError = { message: 'Could not establish connection' };
+            global.browser.runtime.lastError = { message: 'Could not establish connection' };
             callback();
         });
 
@@ -582,7 +582,7 @@ describe('edge cases', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        global.chrome.runtime.lastError = null;
+        global.browser.runtime.lastError = null;
         sender = new ChromeMessageSender();
     });
 
@@ -591,7 +591,7 @@ describe('edge cases', () => {
         const mockResponse = { success: true };
     // @ts-expect-error - vi.fn() type narrowing issue
 
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callCount++;
             if (callCount === 1) {
                 throw new Error('Could not establish connection');
@@ -618,13 +618,13 @@ describe('edge cases', () => {
         ];
     // @ts-expect-error - vi.fn() type narrowing issue
 
-        chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+        browser.runtime.sendMessage.mockImplementation((message, callback) => {
             callCount++;
             if (callCount <= 3) {
-                global.chrome.runtime.lastError = { message: errors[callCount - 1] };
+                global.browser.runtime.lastError = { message: errors[callCount - 1] };
                 callback();
             } else {
-                global.chrome.runtime.lastError = null;
+                global.browser.runtime.lastError = null;
                 callback(mockResponse as any);
             }
         });
@@ -638,14 +638,14 @@ describe('edge cases', () => {
         expect(callCount).toBe(4);
     });
 
-    it('chrome.runtime.sendMessageが利用不可の場合は即座にエラー', async () => {
-        const originalSendMessage = chrome.runtime.sendMessage;
-        (chrome.runtime as any).sendMessage = undefined;
+    it('browser.runtime.sendMessageが利用不可の場合は即座にエラー', async () => {
+        const originalSendMessage = browser.runtime.sendMessage;
+        (browser.runtime as any).sendMessage = undefined;
 
         await expect(
             sender.sendMessageWithRetry({ type: 'TEST', payload: {} } as MessagePayload<unknown>)
         ).rejects.toThrow('Extension context invalidated');
 
-        chrome.runtime.sendMessage = originalSendMessage;
+        browser.runtime.sendMessage = originalSendMessage;
     });
 });

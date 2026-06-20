@@ -5,7 +5,7 @@ import { logWarn, logError, ErrorCode } from '../../utils/logger.js';
 import { errorMessage } from '../../utils/errorUtils.js';
 import type { RecordingLogic } from '../recordingLogic.js';
 
-const ALLOWED_URL_SCHEMES = ['http:', 'https:', 'chrome-extension:', 'moz-extension:', 'edge:'];
+const ALLOWED_URL_SCHEMES = ['http:', 'https:', 'browser-extension:', 'moz-extension:', 'edge:'];
 const BLOCKED_URL_SCHEMES = ['javascript:', 'data:', 'file:', 'vbscript:', 'about:'];
 const MAX_URL_LENGTH = 2000;
 
@@ -31,7 +31,7 @@ export function createNotificationHandlers(recordingLogic: RecordingLogic) {
         try {
             if (!notificationId.startsWith(PRIVACY_CONFIRM_NOTIFICATION_PREFIX)) return;
 
-            chrome.notifications.clear(notificationId).catch(e => {
+            browser.notifications.clear(notificationId).catch(e => {
                 logWarn(
                     'Failed to clear notification',
                     { notificationId, error: errorMessage(e) },
@@ -88,7 +88,7 @@ export function createNotificationHandlers(recordingLogic: RecordingLogic) {
 
     function onClicked(notificationId: string): void {
         if (notificationId.startsWith(PRIVACY_CONFIRM_NOTIFICATION_PREFIX)) {
-            chrome.notifications.clear(notificationId);
+            browser.notifications.clear(notificationId);
         }
     }
 

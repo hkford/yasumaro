@@ -206,7 +206,7 @@ export class TrancoChangeDetector {
    * 通知を表示すべきか判定（7日抑制ルール）
    */
   static async shouldShowNotification(version: string): Promise<boolean> {
-    const result = await chrome.storage.local.get(this.STORAGE_KEY_LAST_NOTIFICATION);
+    const result = await browser.storage.local.get(this.STORAGE_KEY_LAST_NOTIFICATION);
     const lastNotification = result[this.STORAGE_KEY_LAST_NOTIFICATION] as string | null;
 
     if (!lastNotification) {
@@ -229,7 +229,7 @@ export class TrancoChangeDetector {
    * 通知を表示したことを記録
    */
   static async recordNotificationShown(version: string): Promise<void> {
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
       [this.STORAGE_KEY_LAST_NOTIFICATION]: Date.now().toString()
     });
 

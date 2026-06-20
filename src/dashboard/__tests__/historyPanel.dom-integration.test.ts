@@ -14,7 +14,7 @@ const { mockGetSavedUrlEntries, mockGetPendingPages } = vi.hoisted(() => ({
 }));
 
 // Mock chrome global before importing modules
-// Note: chrome.storage.onChanged is at chrome.storage.onChanged (not chrome.storage.local.onChanged)
+// Note: browser.storage.onChanged is at browser.storage.onChanged (not browser.storage.local.onChanged)
 vi.stubGlobal('chrome', {
   i18n: {
     getMessage: vi.fn((key: string) => `i18n_${key}`),
@@ -198,7 +198,7 @@ describe('historyPanel DOM Integration Tests', () => {
 
       await initHistoryPanel();
 
-      expect(chrome.storage.onChanged.addListener).toHaveBeenCalled();
+      expect(browser.storage.onChanged.addListener).toHaveBeenCalled();
     });
 
     it('handles navigate-to-tag event', async () => {
@@ -306,9 +306,9 @@ describe('historyPanel DOM Integration Tests', () => {
 
       await initHistoryPanel();
 
-      expect(chrome.storage.onChanged.addListener).toHaveBeenCalled();
+      expect(browser.storage.onChanged.addListener).toHaveBeenCalled();
 
-      const listener = (chrome.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const listener = (browser.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
       mockGetSavedUrlEntries.mockResolvedValueOnce([
         { url: 'https://example.com/2', title: 'Updated', timestamp: 2000 },
       ] as SavedUrlEntry[]);
@@ -330,7 +330,7 @@ describe('historyPanel DOM Integration Tests', () => {
 
       await initHistoryPanel();
 
-      const listener = (chrome.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const listener = (browser.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
       mockGetSavedUrlEntries.mockClear();
 
       await listener({}, 'sync');
@@ -344,7 +344,7 @@ describe('historyPanel DOM Integration Tests', () => {
 
       await initHistoryPanel();
 
-      const listener = (chrome.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const listener = (browser.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
       mockGetSavedUrlEntries.mockClear();
 
       await listener({ unrelatedKey: { oldValue: null, newValue: 'value' } }, 'local');
@@ -363,7 +363,7 @@ describe('historyPanel DOM Integration Tests', () => {
 
       await initHistoryPanel();
 
-      const listener = (chrome.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const listener = (browser.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
       mockGetPendingPages.mockResolvedValueOnce(mockPendingPages);
 
       await listener(
@@ -381,7 +381,7 @@ describe('historyPanel DOM Integration Tests', () => {
 
       await initHistoryPanel();
 
-      const listener = (chrome.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const listener = (browser.storage.onChanged.addListener as ReturnType<typeof vi.fn>).mock.calls[0][0];
       mockGetSavedUrlEntries.mockResolvedValueOnce([
         { url: 'https://example.com/2', title: 'Updated', timestamp: 2000 },
       ] as SavedUrlEntry[]);

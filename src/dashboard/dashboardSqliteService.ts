@@ -22,7 +22,7 @@ interface DashboardResponse<T = unknown> {
  */
 async function getConfirmToken(): Promise<string | null> {
   try {
-    const stored = await chrome.storage.session.get(CONFIRM_TOKEN_KEY) as Record<string, string | undefined>;
+    const stored = await browser.storage.session.get(CONFIRM_TOKEN_KEY) as Record<string, string | undefined>;
     if (stored[CONFIRM_TOKEN_KEY]) {
       return stored[CONFIRM_TOKEN_KEY];
     }
@@ -33,7 +33,7 @@ async function getConfirmToken(): Promise<string | null> {
   try {
     const response = await sendDashboardMessage({ subtype: 'confirm_token' });
     if (response.success && typeof response.confirmToken === 'string') {
-      await chrome.storage.session.set({ [CONFIRM_TOKEN_KEY]: response.confirmToken });
+      await browser.storage.session.set({ [CONFIRM_TOKEN_KEY]: response.confirmToken });
       return response.confirmToken;
     }
   } catch (error) {
@@ -57,10 +57,10 @@ async function sendDashboardMessage(
     : payload;
 
   // Use Promise-based API (MV3) with timeout for reliability.
-  // The callback-based API can silently fail with chrome.runtime.lastError
+  // The callback-based API can silently fail with browser.runtime.lastError
   // when the service worker responds async via sendResponse().
   return Promise.race([
-    chrome.runtime.sendMessage({ type: 'DASHBOARD_SQLITE', payload: messagePayload }),
+    browser.runtime.sendMessage({ type: 'DASHBOARD_SQLITE', payload: messagePayload }),
     new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Dashboard SQLite request timed out')), DASHBOARD_SQLITE_TIMEOUT);
     }),
@@ -167,7 +167,7 @@ export async function updateLog(id: number, changes: Record<string, unknown>): P
 }
 
 /**
- * Force re-run the chrome.storage → SQLite migration.
+ * Force re-run the browser.storage → SQLite migration.
  * Returns the SQLite record count after migration, or null on failure.
  */
 export async function migrateLogs(): Promise<{ count: number; read: number; inserted: number } | null> {

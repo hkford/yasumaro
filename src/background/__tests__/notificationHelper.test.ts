@@ -15,7 +15,7 @@ const mockGetMessage = vi.fn((key: string) => {
     return msgs[key] || '';
 });
 (global as any).chrome = {
-    runtime: { getURL: vi.fn((path: string) => `chrome-extension://mock-id/${path}`) },
+    runtime: { getURL: vi.fn((path: string) => `browser-extension://mock-id/${path.startsWith('/') ? path.substring(1) : path}`) },
     notifications: { create: mockCreate },
     i18n: { getMessage: mockGetMessage }
 };
@@ -32,7 +32,7 @@ describe('NotificationHelper', () => {
     describe('getIconUrl', () => {
         test('アイコンURLを返す', () => {
             const url = NotificationHelper.getIconUrl();
-            expect(url).toBe('chrome-extension://mock-id/icons/icon48.png');
+            expect(url).toBe('browser-extension://mock-id/icons/icon48.png');
         });
     });
 
@@ -42,7 +42,7 @@ describe('NotificationHelper', () => {
             expect(mockCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     type: 'basic', title: 'Title', message: 'Message',
-                    iconUrl: 'chrome-extension://mock-id/icons/icon48.png'
+                    iconUrl: 'browser-extension://mock-id/icons/icon48.png'
                 })
             );
         });

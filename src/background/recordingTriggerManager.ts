@@ -1,7 +1,7 @@
 /**
  * recordingTriggerManager.ts
  * Manages recording trigger settings and provides shouldRecord() evaluation.
- * Integrates with chrome.alarms for periodic snapshots.
+ * Integrates with browser.alarms for periodic snapshots.
  */
 
 import { StorageKeys } from '../utils/storage.js';
@@ -38,7 +38,7 @@ export interface RecordingEvent {
 
 export class RecordingTriggerManager {
   private cachedTriggers: RecordingTriggers | null = null;
-  private storageListener: ((changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => void) | null = null;
+  private storageListener: ((changes: { [key: string]: browser.storage.StorageChange }, areaName: string) => void) | null = null;
 
   constructor() {
     this.setupStorageListener();
@@ -47,7 +47,7 @@ export class RecordingTriggerManager {
   private setupStorageListener(): void {
     if (this.storageListener) return;
 
-    this.storageListener = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+    this.storageListener = (changes: { [key: string]: browser.storage.StorageChange }, areaName: string) => {
       if (areaName !== 'local') return;
 
       if (StorageKeys.RECORDING_TRIGGERS in changes) {
@@ -56,20 +56,20 @@ export class RecordingTriggerManager {
     };
 
     try {
-      chrome.storage.onChanged.addListener(this.storageListener);
+      browser.storage.onChanged.addListener(this.storageListener);
     } catch {
       this.storageListener = null;
     }
   }
 
   /**
-   * Load trigger settings from chrome.storage.local with caching.
+   * Load trigger settings from browser.storage.local with caching.
    */
   async loadTriggers(): Promise<RecordingTriggers> {
     if (this.cachedTriggers) return this.cachedTriggers;
 
     try {
-      const result = await chrome.storage.local.get(StorageKeys.RECORDING_TRIGGERS);
+      const result = await browser.storage.local.get(StorageKeys.RECORDING_TRIGGERS);
       const raw = result[StorageKeys.RECORDING_TRIGGERS];
       if (typeof raw === 'string') {
         const parsed = JSON.parse(raw) as Partial<RecordingTriggers>;
@@ -85,7 +85,7 @@ export class RecordingTriggerManager {
   }
 
   /**
-   * Save trigger settings to chrome.storage.local.
+   * Save trigger settings to browser.storage.local.
    * Validates that at least one trigger is enabled before saving.
    */
   async saveTriggers(triggers: RecordingTriggers): Promise<boolean> {
@@ -98,7 +98,7 @@ export class RecordingTriggerManager {
       }
 
       const raw = JSON.stringify(triggers);
-      await chrome.storage.local.set({ [StorageKeys.RECORDING_TRIGGERS]: raw });
+      await browser.storage.local.set({ [StorageKeys.RECORDING_TRIGGERS]: raw });
       this.cachedTriggers = { ...triggers };
       addLog(LogType.INFO, 'Recording triggers saved', { triggers });
       return true;
@@ -120,7 +120,7 @@ export class RecordingTriggerManager {
       case 'scroll_idle': {
         if (!triggers.scrollAndTime) return false;
         // Read user-configured thresholds from storage, fall back to defaults
-        const settings = await chrome.storage.local.get([StorageKeys.MIN_SCROLL_DEPTH, StorageKeys.MIN_VISIT_DURATION]);
+        const settings = await browser.storage.local.get([StorageKeys.MIN_SCROLL_DEPTH, StorageKeys.MIN_VISIT_DURATION]);
         const minScrollDepth = (settings[StorageKeys.MIN_SCROLL_DEPTH] as number) ?? 50;
         const minVisitDuration = (settings[StorageKeys.MIN_VISIT_DURATION] as number) ?? 5;
         if ((event.scrollPercent ?? 0) < minScrollDepth) return false;
@@ -155,7 +155,7 @@ export class RecordingTriggerManager {
    */
   async getSnapshotIntervalMinutes(): Promise<number> {
     try {
-      const result = await chrome.storage.local.get(StorageKeys.SNAPSHOT_INTERVAL_MINUTES);
+      const result = await browser.storage.local.get(StorageKeys.SNAPSHOT_INTERVAL_MINUTES);
       return (result[StorageKeys.SNAPSHOT_INTERVAL_MINUTES] as number) || 5;
     } catch {
       return 5;
@@ -168,7 +168,7 @@ export class RecordingTriggerManager {
   async saveSnapshotInterval(minutes: number): Promise<boolean> {
     try {
       const clamped = Math.max(1, Math.min(60, minutes));
-      await chrome.storage.local.set({ [StorageKeys.SNAPSHOT_INTERVAL_MINUTES]: clamped });
+      await browser.storage.local.set({ [StorageKeys.SNAPSHOT_INTERVAL_MINUTES]: clamped });
       return true;
     } catch {
       return false;

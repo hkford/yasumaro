@@ -292,7 +292,7 @@ describe('setHtmlLangDir', () => {
         vi.stubGlobal('chrome', {
             ...chrome,
             i18n: {
-                ...chrome.i18n,
+                ...browser.i18n,
                 getUILanguage: vi.fn().mockReturnValue('ar'),
             },
         });
@@ -306,7 +306,7 @@ describe('setHtmlLangDir', () => {
         vi.stubGlobal('chrome', {
             ...chrome,
             i18n: {
-                ...chrome.i18n,
+                ...browser.i18n,
                 getUILanguage: vi.fn().mockReturnValue('en'),
             },
         });
@@ -503,7 +503,7 @@ describe('initPopup coverage', () => {
         vi.stubGlobal('chrome', {
             ...chrome,
             i18n: {
-                ...chrome.i18n,
+                ...browser.i18n,
                 getUILanguage: vi.fn().mockImplementation(() => { throw new Error('fail'); }),
             },
         });

@@ -1,6 +1,6 @@
 /**
  * sqliteAlert.ts
- * Tracks consecutive SQLite failures and fires chrome.notifications
+ * Tracks consecutive SQLite failures and fires browser.notifications
  * when a persistent failure threshold is reached.
  */
 

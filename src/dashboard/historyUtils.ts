@@ -40,10 +40,34 @@ export async function sendMessageWithTimeout(payload: {
   skipAi: boolean;
 }): Promise<unknown> {
   const timeoutMs = 20000;
-  const messagePromise = chrome.runtime.sendMessage({
+  console.log('[historyUtils] sendMessageWithTimeout: sending MANUAL_RECORD', {
+    url: payload.url,
+    force: payload.force,
+    skipAi: payload.skipAi
+  });
+
+  // Check payload serialization
+  try {
+    JSON.stringify(payload);
+    console.log('[historyUtils] sendMessageWithTimeout: payload is JSON serializable');
+  } catch (e) {
+    console.error('[historyUtils] sendMessageWithTimeout: payload is NOT JSON serializable!', e);
+  }
+
+  const messagePromise = browser.runtime.sendMessage({
     type: 'MANUAL_RECORD',
     payload,
+  }).then(response => {
+    console.log('[historyUtils] sendMessageWithTimeout: received response', {
+      success: !!response?.success,
+      error: response?.error
+    });
+    return response;
+  }).catch(err => {
+    console.error('[historyUtils] sendMessageWithTimeout: sendMessage failed', err);
+    throw err;
   });
+
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(
       () => reject(new Error('Request timed out after 20 seconds. The page may be taking too long to load or process.')),
@@ -69,7 +93,7 @@ export function showRecordError(info: HTMLElement, error: unknown): void {
 
 export async function checkServiceWorkerAlive(): Promise<boolean> {
   try {
-    const response = await chrome.runtime.sendMessage({ type: 'PING' });
+    const response = await browser.runtime.sendMessage({ type: 'PING' });
     return response?.success === true;
   } catch (error) {
     console.error('[Dashboard] Service Worker not responding:', error);

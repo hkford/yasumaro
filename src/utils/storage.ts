@@ -1,6 +1,6 @@
 /**
  * storage.ts
- * Wrapper for chrome.storage.local to manage settings.
+ * Wrapper for browser.storage.local to manage settings.
  *
  * 【リファクタリング履歴】: 単一ファイル（1639行）からモジュール分割へ実装
  * 新しいモジュール構成:
@@ -51,7 +51,7 @@ const STORAGE_QUOTA_BYTES = 5 * 1024 * 1024; // 5MB (Chrome拡張機能のデフ
  * @returns {Promise<number>} 使用量（バイト）
  */
 export async function getStorageUsage(): Promise<number> {
-  return await chrome.storage.local.getBytesInUse();
+    return await browser.storage.local.getBytesInUse();
 }
 
 /**
@@ -60,7 +60,7 @@ export async function getStorageUsage(): Promise<number> {
  * @returns {number} サイズ（バイト）
  */
 function estimateDataSize(data: unknown): number {
-  return new Blob([JSON.stringify(data || {})]).size;
+    return new Blob([JSON.stringify(data || {})]).size;
 }
 
 // StorageKeys, StorageKey, StorageKeyValues, StrictSettings, Settings は storage/types.ts に移動済み
@@ -197,7 +197,7 @@ export async function getOrCreateEncryptionKey(): Promise<CryptoKey> {
     }
 
     // マスターパスワード設定状態を確認
-    const result = await chrome.storage.local.get([
+    const result = await browser.storage.local.get([
         StorageKeys.MASTER_PASSWORD_ENABLED,
         StorageKeys.ENCRYPTION_SALT,
         StorageKeys.ENCRYPTION_SECRET,
@@ -226,7 +226,7 @@ export async function getOrCreateEncryptionKey(): Promise<CryptoKey> {
         // PBKDF2キー導出を直接使用（マスターパスワードベース）
         cachedEncryptionKey = await deriveKeyFromPassword(cachedMasterPassword, passwordSalt);
         // セッションタイムアウトチェックを開始（まだ開始していない場合）
-        // Note: Session timeoutはchrome.alarms APIに移行済み（sessionAlarmsManager.ts）
+        // Note: Session timeoutはbrowser.alarms APIに移行済み（sessionAlarmsManager.ts）
         return cachedEncryptionKey;
     }
 
@@ -243,7 +243,7 @@ export async function getOrCreateEncryptionKey(): Promise<CryptoKey> {
         const secretBytes = crypto.getRandomValues(new Uint8Array(32));
         secret = btoa(String.fromCharCode(...secretBytes));
 
-        await chrome.storage.local.set({
+        await browser.storage.local.set({
             [StorageKeys.ENCRYPTION_SALT]: saltBase64,
             [StorageKeys.ENCRYPTION_SECRET]: secret
         });
@@ -253,7 +253,7 @@ export async function getOrCreateEncryptionKey(): Promise<CryptoKey> {
 
     // ランダムなsecretとsaltからPBKDF2でキー導出
     // 【セキュリティ】secretは初回生成時にcrypto.getRandomValuesで生成した32バイトの乱数であり、
-    // これ単体で十分なエントロピーを持つ。以前はchrome.runtime.id（Extension ID）を
+    // これ単体で十分なエントロピーを持つ。以前はbrowser.runtime.id（Extension ID）を
     // 追加で結合していたが、Extension IDは公開情報であるためセキュリティ上の
     // 価値がなく、誤った安心感を与えるだけだったため削除した。
     cachedEncryptionKey = await deriveKey(secret, salt);
@@ -313,7 +313,7 @@ async function deriveKeyFromPassword(password: string, salt: Uint8Array): Promis
  * @returns {Promise<boolean>} マスターパスワードが設定済みの場合true
  */
 export async function isMasterPasswordEnabled(): Promise<boolean> {
-    const result = await chrome.storage.local.get(StorageKeys.MASTER_PASSWORD_ENABLED);
+    const result = await browser.storage.local.get(StorageKeys.MASTER_PASSWORD_ENABLED);
     return Boolean(result[StorageKeys.MASTER_PASSWORD_ENABLED]);
 }
 
@@ -348,7 +348,7 @@ export async function setMasterPassword(password: string): Promise<boolean> {
     const saltBase64 = btoa(String.fromCharCode(...salt));
     const hash = await hashPasswordWithPBKDF2(password, salt);
 
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
         [StorageKeys.MASTER_PASSWORD_ENABLED]: true,
         [StorageKeys.MASTER_PASSWORD_SALT]: saltBase64,
         [StorageKeys.MASTER_PASSWORD_HASH]: hash,
@@ -377,7 +377,7 @@ export async function setMasterPassword(password: string): Promise<boolean> {
  * @returns {Promise<boolean>} 成功した場合true
  */
 export async function unlockWithPassword(password: string): Promise<boolean> {
-    const result = await chrome.storage.local.get([
+    const result = await browser.storage.local.get([
         StorageKeys.MASTER_PASSWORD_HASH,
         StorageKeys.MASTER_PASSWORD_SALT,
         StorageKeys.MASTER_PASSWORD_ENABLED
@@ -400,13 +400,13 @@ export async function unlockWithPassword(password: string): Promise<boolean> {
 
     if (isValid) {
         // アクティビティ通知を送信（sessionAlarmsManager.tsへ）
-        chrome.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch((error) => {
+        browser.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch((error: { message: string }) => {
             // 送信失敗は無視（Service Workerが起動していない可能性）
             logDebug('Failed to send activity update', { error: error.message }, 'storage.ts');
         });
         cachedMasterPassword = password;
         cachedEncryptionKey = null; // 新しいキーを生成するためにキャッシュをクリア
-        await chrome.storage.local.set({ [StorageKeys.IS_LOCKED]: false });
+        await browser.storage.local.set({ [StorageKeys.IS_LOCKED]: false });
         return true;
     }
 
@@ -419,7 +419,7 @@ export async function unlockWithPassword(password: string): Promise<boolean> {
 export async function lockSession(): Promise<void> {
     cachedMasterPassword = null;
     cachedEncryptionKey = null;
-    await chrome.storage.local.set({ [StorageKeys.IS_LOCKED]: true });
+    await browser.storage.local.set({ [StorageKeys.IS_LOCKED]: true });
 }
 
 /** * マスターパスワードを再設定する（古いパスワード検証後）
@@ -445,7 +445,7 @@ export async function changeMasterPassword(oldPassword: string, newPassword: str
  * マスターパスワード設定を解除する（すべての暗号化データを再暗号化できないため注意が必要）
  */
 export async function removeMasterPassword(): Promise<void> {
-    await chrome.storage.local.remove([
+    await browser.storage.local.remove([
         StorageKeys.MASTER_PASSWORD_ENABLED,
         StorageKeys.MASTER_PASSWORD_SALT,
         StorageKeys.MASTER_PASSWORD_HASH,
@@ -477,7 +477,7 @@ export async function getOrCreateHmacSecret(): Promise<string> {
         return cachedHmacSecret;
     }
 
-    const result = await chrome.storage.local.get(StorageKeys.HMAC_SECRET);
+    const result = await browser.storage.local.get(StorageKeys.HMAC_SECRET);
     let secret = result[StorageKeys.HMAC_SECRET] as string;
 
     if (!secret) {
@@ -485,7 +485,7 @@ export async function getOrCreateHmacSecret(): Promise<string> {
         const secretBytes = crypto.getRandomValues(new Uint8Array(32));
         secret = btoa(String.fromCharCode(...secretBytes));
 
-        await chrome.storage.local.set({
+        await browser.storage.local.set({
             [StorageKeys.HMAC_SECRET]: secret
         });
     }
@@ -522,13 +522,13 @@ function isEncryptionKey(key: string): boolean {
  */
 export async function migrateToSingleSettingsObject(): Promise<boolean> {
     // 既に移行済みの場合はスキップ
-    const result = await chrome.storage.local.get(SETTINGS_MIGRATED_KEY);
+    const result = await browser.storage.local.get(SETTINGS_MIGRATED_KEY);
     if (result[SETTINGS_MIGRATED_KEY]) {
         return false;
     }
 
     // 現在のストレージデータを取得
-    const existingKeys = await chrome.storage.local.get(null);
+    const existingKeys = await browser.storage.local.get(null);
     const settings: Settings = {};
 
     // StorageKeysに含まれる個別キーをsettingsオブジェクトに集約
@@ -559,7 +559,7 @@ export async function migrateToSingleSettingsObject(): Promise<boolean> {
     });
 
     // マイグレーション完了フラグを設定
-    await chrome.storage.local.set({ [SETTINGS_MIGRATED_KEY]: true });
+    await browser.storage.local.set({ [SETTINGS_MIGRATED_KEY]: true });
 
     // 古い個別キーを削除
     const keysToRemove = Object.keys(existingKeys).filter(key =>
@@ -570,7 +570,7 @@ export async function migrateToSingleSettingsObject(): Promise<boolean> {
     );
 
     if (keysToRemove.length > 0) {
-        await chrome.storage.local.remove(keysToRemove);
+        await browser.storage.local.remove(keysToRemove);
     }
 
     return true;
@@ -584,7 +584,7 @@ export async function getSettings(): Promise<Settings> {
     }
 
     // 単一settingsオブジェクトが存在する場合はそれを使用
-    const result = await chrome.storage.local.get(['settings', SETTINGS_MIGRATED_KEY]);
+    const result = await browser.storage.local.get(['settings', SETTINGS_MIGRATED_KEY]);
 
     const rawSettings = result.settings as Settings | undefined;
     await logInfo('[Storage] Raw storage result:', {
@@ -637,7 +637,7 @@ export async function getSettings(): Promise<Settings> {
 
     // 旧方式: StorageKeysで定義されているキーのみを取得
     const keysToGet: string[] = Object.values(StorageKeys);
-    let settings = await chrome.storage.local.get(keysToGet);
+    let settings = await browser.storage.local.get(keysToGet);
 
     // Merge with 'settings' object if it exists (saveSettings writes to this object)
     // The 'settings' object takes precedence since saveSettings always writes there
@@ -648,7 +648,7 @@ export async function getSettings(): Promise<Settings> {
     const migrated = await migrateUblockSettings();
     if (migrated) {
         // マイグレーション後は同じキーで再取得
-        const afterMigration = await chrome.storage.local.get(keysToGet);
+        const afterMigration = await browser.storage.local.get(keysToGet);
         settings = { ...settings, ...afterMigration }; // マイグレーション後の値をマージ
         // addLog(LogType.DEBUG, 'Settings migration completed', { migrated, keysUpdated: Object.keys(afterMigration) });
     }
@@ -702,7 +702,7 @@ export function clearSettingsCache(): void {
 }
 
 /**
- * Save settings to chrome.storage.local with optional allowed URL list update.
+ * Save settings to browser.storage.local with optional allowed URL list update.
  *
  * @param {Settings} settings - Settings to save
  * @param {boolean} updateAllowedUrlsFlag - Whether to update the allowed URL list (default: false)
@@ -784,7 +784,7 @@ export interface SavedUrlEntry {
  * @returns {Promise<Set<string>>} Set of saved URLs
  */
 export async function getSavedUrls(): Promise<Set<string>> {
-    const result = await chrome.storage.local.get('savedUrls');
+    const result = await browser.storage.local.get('savedUrls');
     return new Set((result.savedUrls as string[]) || []);
 }
 
@@ -793,7 +793,7 @@ export async function getSavedUrls(): Promise<Set<string>> {
  * @returns {Promise<Map<string, number>>} Map of URLs to timestamps
  */
 export async function getSavedUrlsWithTimestamps(): Promise<Map<string, number>> {
-    const result = await chrome.storage.local.get('savedUrlsWithTimestamps');
+    const result = await browser.storage.local.get('savedUrlsWithTimestamps');
     const entries = (result.savedUrlsWithTimestamps as SavedUrlEntry[]) || [];
     const urlMap = new Map<string, number>();
     for (const entry of entries) {
@@ -833,7 +833,7 @@ export async function setSavedUrls(urlSet: Set<string>, urlToAdd: string | null 
  * @param {string} url - URL to update
  */
 async function updateUrlTimestamp(url: string): Promise<void> {
-    const result = await chrome.storage.local.get('savedUrlsWithTimestamps');
+    const result = await browser.storage.local.get('savedUrlsWithTimestamps');
     let entries = (result.savedUrlsWithTimestamps as SavedUrlEntry[]) || [];
 
     // 既存のURLがある場合は削除
@@ -852,7 +852,7 @@ async function updateUrlTimestamp(url: string): Promise<void> {
         entries = entries.slice(entries.length - MAX_URL_SET_SIZE);
     }
 
-    await chrome.storage.local.set({ savedUrlsWithTimestamps: entries });
+    await browser.storage.local.set({ savedUrlsWithTimestamps: entries });
 }
 
 /**
@@ -890,12 +890,12 @@ export async function setSavedUrlsWithTimestamps(urlMap: Map<string, number>, ur
     // savedUrlsがsavedUrlsWithTimestampsと同期されていない場合は個別に更新
     // (互換性維持のため、savedUrlsも保存する)
     // Note: これは競合の可能性がありますが、savedUrlsはsavedUrlsWithTimestampsから再生成可能です
-    const currentSavedUrls = await chrome.storage.local.get('savedUrls');
+    const currentSavedUrls = await browser.storage.local.get('savedUrls');
     const currentSavedArray = currentSavedUrls['savedUrls'] as string[] || [];
 
     // 配列が同じならスキップ
     if (JSON.stringify(currentSavedArray.sort()) !== JSON.stringify(urlArray.sort())) {
-        await chrome.storage.local.set({ savedUrls: urlArray });
+        await browser.storage.local.set({ savedUrls: urlArray });
     }
 }
 
@@ -1066,7 +1066,7 @@ export async function saveSettingsWithAllowedUrls(settings: Settings): Promise<v
  * @returns {Promise<Set<string>>} 許可されたURLのセット
  */
 export async function getAllowedUrls(): Promise<Set<string>> {
-    const result = await chrome.storage.local.get(StorageKeys.ALLOWED_URLS);
+    const result = await browser.storage.local.get(StorageKeys.ALLOWED_URLS);
     const urls = (result[StorageKeys.ALLOWED_URLS] as string[]) || [];
     return new Set(urls);
 }
@@ -1084,17 +1084,17 @@ const DOMAIN_FILTER_CACHE_TTL = 5 * 60 * 1000; // 5分
 /**
  * [同期] ドメインフィルタキャッシュを取得
  * Content Scriptから直接呼び出すため、ストレージに同期的アクセスはできませんが
- * chrome.storage.local.get はコールバックで即時取得可能
+ * browser.storage.local.get はコールバックで即時取得可能
  * この関数は Content Script で使用します
  *
  * @param {function} callback - キャッシュデータを受け取るコールバック関数
  */
 export function getDomainFilterCacheSync(callback: (data: { allowedDomains: string[]; blockedDomains: string[]; cachedAt: number; mode: string }) => void): void {
-    chrome.storage.local.get([
+    browser.storage.local.get([
         StorageKeys.DOMAIN_FILTER_CACHE,
         StorageKeys.DOMAIN_FILTER_CACHE_TIMESTAMP,
         StorageKeys.DOMAIN_FILTER_MODE
-    ], (result) => {
+    ], (result: Record<string, string[] | number | string>) => {
         const allowedDomains = (result[StorageKeys.DOMAIN_FILTER_CACHE] as string[]) || [];
         const cachedAt = (result[StorageKeys.DOMAIN_FILTER_CACHE_TIMESTAMP] as number) || 0;
         const mode = (result[StorageKeys.DOMAIN_FILTER_MODE] as string) || 'disabled';
@@ -1186,7 +1186,7 @@ export async function updateDomainFilterCache(settings: Settings): Promise<void>
         }
     }
 
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
         [StorageKeys.DOMAIN_FILTER_CACHE]: cachedDomains,
         [StorageKeys.DOMAIN_FILTER_CACHE_TIMESTAMP]: now
     });

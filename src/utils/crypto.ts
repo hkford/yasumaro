@@ -372,7 +372,7 @@ export async function getNotificationHmacKey(): Promise<CryptoKey> {
 
     // Try to load encrypted key from storage
     try {
-        const result = await chrome.storage.local.get([
+        const result = await browser.storage.local.get([
             HMAC_SIGNATURE_KEY_STORAGE,
             HMAC_SIGNATURE_KEY_VERSION
         ]);
@@ -396,7 +396,7 @@ export async function getNotificationHmacKey(): Promise<CryptoKey> {
     // Generate new key and store as base64 (storage is extension-scoped, no additional encryption needed)
     const keyData = webcrypto.getRandomValues(new Uint8Array(32));
     const keyBase64 = uint8ArrayToBase64(keyData);
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
         [HMAC_SIGNATURE_KEY_STORAGE]: keyBase64,
         [HMAC_SIGNATURE_KEY_VERSION]: '1'
     });

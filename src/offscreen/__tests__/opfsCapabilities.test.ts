@@ -56,7 +56,7 @@ describe('selectVfsStrategy', () => {
       .toBe('opfs-async-main');
   });
 
-  it('falls back to chrome.storage.local when OPFS itself is unavailable', () => {
+  it('falls back to browser.storage.local when OPFS itself is unavailable', () => {
     expect(selectVfsStrategy({ opfsDirectory: false, syncAccessHandle: false, worker: false }))
       .toBe('fallback');
   });

@@ -192,14 +192,14 @@ function getMsgWithCache(key: keyof MessagesCache | string, substitutions?: stri
   // 初回のみメッセージを取得してキャッシュに保存
   if (!messagesCache) {
     messagesCache = {
-      connectionError: chrome.i18n.getMessage('connectionError'),
-      domainBlockedError: chrome.i18n.getMessage('domainBlockedError'),
-      errorPrefix: chrome.i18n.getMessage('errorPrefix'),
-      success: chrome.i18n.getMessage('success'),
-      cancelled: chrome.i18n.getMessage('cancelled'),
-      unknownError: chrome.i18n.getMessage('unknownError'),
-      forceRecord: chrome.i18n.getMessage('forceRecord'),
-      recording: chrome.i18n.getMessage('recording')
+      connectionError: browser.i18n.getMessage('connectionError'),
+      domainBlockedError: browser.i18n.getMessage('domainBlockedError'),
+      errorPrefix: browser.i18n.getMessage('errorPrefix'),
+      success: browser.i18n.getMessage('success'),
+      cancelled: browser.i18n.getMessage('cancelled'),
+      unknownError: browser.i18n.getMessage('unknownError'),
+      forceRecord: browser.i18n.getMessage('forceRecord'),
+      recording: browser.i18n.getMessage('recording')
     };
   }
 
@@ -213,7 +213,7 @@ function getMsgWithCache(key: keyof MessagesCache | string, substitutions?: stri
   if (key === 'forceRecord') return messagesCache.forceRecord;
   if (key === 'recording') return messagesCache.recording;
 
-  return chrome.i18n.getMessage(key, substitutions);
+  return browser.i18n.getMessage(key, substitutions);
 }
 
 /**
@@ -411,7 +411,7 @@ export function formatDuration(ms: number): string {
   if (ms < 1000) {
     return `${Math.round(ms)}ms`;
   }
-  const secondsUnit = chrome.i18n.getMessage('seconds') || 's';
+  const secondsUnit = browser.i18n.getMessage('seconds') || 's';
   return `${(ms / 1000).toFixed(1)}${secondsUnit}`;
 }
 

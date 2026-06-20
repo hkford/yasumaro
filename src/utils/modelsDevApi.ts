@@ -58,7 +58,7 @@ export function findProviderById(providers: ModelsDevProvider[], providerId: str
  */
 export async function loadModelsDevData(): Promise<ModelsDevData | null> {
     try {
-        const response = await fetch(chrome.runtime.getURL('data/models-dev-openai-compatible.json'));
+        const response = await fetch(browser.runtime.getURL('/data/models-dev-openai-compatible.json'));
         if (!response.ok) {
             console.warn('[ModelsDev] Failed to load provider data:', response.status);
             return null;

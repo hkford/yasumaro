@@ -300,13 +300,13 @@ describe('formatEntriesToMarkdown', () => {
 // ============================================================================
 
 function givenResponse(response: unknown) {
-  (globalThis as any).chrome.runtime.sendMessage = vi.fn(
+  (globalThis as any).browser.runtime.sendMessage = vi.fn(
     (_message: unknown) => Promise.resolve(response),
   );
 }
 
 function givenLastError(errorMessage: string) {
-  (globalThis as any).chrome.runtime.sendMessage = vi.fn(
+  (globalThis as any).browser.runtime.sendMessage = vi.fn(
     (_message: unknown) => Promise.reject(new Error(errorMessage)),
   );
 }
@@ -319,8 +319,8 @@ describe('appendToLogs', () => {
     if (!(globalThis as any).chrome) {
       (globalThis as any).chrome = {};
     }
-    if (!(globalThis as any).chrome.runtime) {
-      (globalThis as any).chrome.runtime = {};
+    if (!(globalThis as any).browser.runtime) {
+      (globalThis as any).browser.runtime = {};
     }
   });
 
@@ -337,7 +337,7 @@ describe('appendToLogs', () => {
 
     await appendToLogs([1, 2, 3]);
 
-    expect((globalThis as any).chrome.runtime.sendMessage).toHaveBeenCalledWith({
+    expect((globalThis as any).browser.runtime.sendMessage).toHaveBeenCalledWith({
       type: 'DASHBOARD_SQLITE',
       payload: { subtype: 'append_to_obsidian', ids: [1, 2, 3] },
     });

@@ -82,15 +82,15 @@ function setupChromeMocks(): void {
   const c = globalThis as any;
   // Ensure chrome exists (guard against environment mismatch)
   if (!c.chrome) c.chrome = {};
-  if (!c.chrome.storage) c.chrome.storage = {};
-  if (!c.chrome.storage.local) c.chrome.storage.local = {};
-  if (!c.chrome.runtime) c.chrome.runtime = { lastError: null };
+  if (!c.browser.storage) c.browser.storage = {};
+  if (!c.browser.storage.local) c.browser.storage.local = {};
+  if (!c.browser.runtime) c.browser.runtime = { lastError: null };
 
-  c.chrome.storage.local.getBytesInUse = mockGetBytesInUse;
-  c.chrome.storage.local.get = mockStorageLocalGet;
-  c.chrome.storage.local.set = mockStorageLocalSet;
-  c.chrome.runtime.getManifest = mockGetManifest;
-  c.chrome.runtime.sendMessage = mockSendMessage;
+  c.browser.storage.local.getBytesInUse = mockGetBytesInUse;
+  c.browser.storage.local.get = mockStorageLocalGet;
+  c.browser.storage.local.set = mockStorageLocalSet;
+  c.browser.runtime.getManifest = mockGetManifest;
+  c.browser.runtime.sendMessage = mockSendMessage;
 }
 
 // ---------------------------------------------------------------------------
@@ -425,7 +425,7 @@ describe('initDiagnosticsPanel — Extension info', () => {
     document.body.innerHTML = '';
   });
 
-  it('calls chrome.runtime.getManifest()', () => {
+  it('calls browser.runtime.getManifest()', () => {
     expect(mockGetManifest).toHaveBeenCalled();
   });
 
@@ -703,7 +703,7 @@ describe('BDD: SQLite capability matrix — deficiency diagnosis', () => {
   it('shows deficiency when fallback is true', async () => {
     mockGetSqliteStatus.mockResolvedValue({
       initialized: true,
-      path: 'chrome.storage.local',
+      path: 'browser.storage.local',
       fallback: true,
       fts5: false,
       compileOptionsSource: 'fallback',
@@ -753,7 +753,7 @@ describe('BDD: SQLite capability matrix — debug mode', () => {
     expect(section.style.display).toBe('');
   });
 
-  it('toggles debug mode and persists to chrome.storage.local', async () => {
+  it('toggles debug mode and persists to browser.storage.local', async () => {
     mockStorageLocalGet.mockResolvedValue({ debugMode: false });
     await initDiagnosticsPanel();
     const toggle = document.getElementById('diagDebugModeToggle') as HTMLInputElement;
@@ -799,14 +799,14 @@ describe('BDD: SQLite capability matrix — divergence detection', () => {
   });
 
   it('shows divergence warning only when offscreen uses fallback but dashboard detects OPFS', async () => {
-    // Real problem: dashboard detects OPFS available, but offscreen fell back to chrome.storage.local
+    // Real problem: dashboard detects OPFS available, but offscreen fell back to browser.storage.local
     mockDetectLiveVfsStrategy.mockReturnValue({
       caps: { opfsDirectory: true, syncAccessHandle: true, worker: true },
       strategy: 'opfs-sync-worker',
     });
     mockGetSqliteStatus.mockResolvedValue({
       initialized: true,
-      path: 'chrome.storage.local',
+      path: 'browser.storage.local',
       fallback: true,
       fts5: false,
       compileOptionsSource: 'fallback',

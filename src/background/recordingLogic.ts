@@ -414,10 +414,10 @@ constructor(obsidianClient: ObsidianClient, aiClient: AIClient, privacyPipeline?
 
     // キャッシュミス: Service Worker 再起動でインメモリキャッシュが消えた可能性がある
     // session storage からフォールバック取得を試みる
-    if (chrome.storage.session) {
+    if (browser.storage.session) {
       try {
         const sessionKey = 'privacyCache_' + normalizedUrl;
-        const result = await chrome.storage.session.get(sessionKey);
+        const result = await browser.storage.session.get(sessionKey);
         const cached = isPrivacyInfo(result[sessionKey]) ? result[sessionKey] : undefined;
         if (cached) {
           // インメモリキャッシュに復元

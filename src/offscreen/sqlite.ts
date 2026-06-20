@@ -309,10 +309,10 @@ async function _doInit(): Promise<boolean> {
       terminateOpfsWorker();
     }
 
-    // Fall back to chrome.storage.local when both OPFS and IDB are unavailable
+    // Fall back to browser.storage.local when both OPFS and IDB are unavailable
     usingFallbackStorage = true;
     fallbackStorage = new FallbackStorage();
-    try { await chrome.storage.local.set({ [StorageKeys.OPFS_FALLBACK_MODE]: true }); } catch { /* offscreen context */ }
+    try { await browser.storage.local.set({ [StorageKeys.OPFS_FALLBACK_MODE]: true }); } catch { /* offscreen context */ }
     return false;
   }
 }
@@ -328,7 +328,7 @@ async function tryMigrateFallbackToSqlite(): Promise<void> {
 
     if (records.length === 0) {
       // No records to migrate, but OPFS is available so clear the fallback flag
-      try { await chrome.storage.local.remove(StorageKeys.OPFS_FALLBACK_MODE); } catch { /* offscreen context */ }
+      try { await browser.storage.local.remove(StorageKeys.OPFS_FALLBACK_MODE); } catch { /* offscreen context */ }
       return;
     }
 
@@ -363,7 +363,7 @@ async function tryMigrateFallbackToSqlite(): Promise<void> {
       logInfo(`SQLite: migrated ${migrated} records from fallback storage`, { migrated }, 'sqlite');
       await tempFallback.clearAll();
     }
-    try { await chrome.storage.local.remove(StorageKeys.OPFS_FALLBACK_MODE); } catch { /* offscreen context */ }
+    try { await browser.storage.local.remove(StorageKeys.OPFS_FALLBACK_MODE); } catch { /* offscreen context */ }
   } catch (error) {
     logError('SQLite: fallback migration failed', { error: errorMessage(error) }, ErrorCode.STORAGE_MIGRATION_FAILURE, 'sqlite');
   }
@@ -993,7 +993,7 @@ export async function getStatus(): Promise<{ success: true; initialized: boolean
     if (usingFallbackStorage && fallbackStorage) {
       const countResult = await fallbackStorage.getCount();
       const count = countResult.success ? countResult.count : 0;
-      return { success: true, initialized: count >= 0, path: 'chrome.storage.local', fallback: true, fts5: false, compileOptionsSource: 'fallback' };
+      return { success: true, initialized: count >= 0, path: 'browser.storage.local', fallback: true, fts5: false, compileOptionsSource: 'fallback' };
     }
 
     if (!dbHandle || !sqlite3) {
@@ -1001,7 +1001,7 @@ export async function getStatus(): Promise<{ success: true; initialized: boolean
       await init();
       // If init switched to fallback, return fallback status
       if (usingFallbackStorage && fallbackStorage) {
-        return { success: true, initialized: true, path: 'chrome.storage.local', fallback: true, fts5: false, compileOptionsSource: 'fallback' };
+        return { success: true, initialized: true, path: 'browser.storage.local', fallback: true, fts5: false, compileOptionsSource: 'fallback' };
       }
       if (!dbHandle) {
         return { success: true, initialized: false, path: DB_FILENAME, fallback: false, initError: lastInitError || 'Init returned false', fts5: false, compileOptionsSource: 'idb' };

@@ -29,7 +29,7 @@ describe('Integration: Robustness improvements', () => {
 
   test('settings.getがStorageKeysのみを取得', async () => {
     // ゴミデータをセット
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
       junk1: 1,
       junk2: 'garbage',
       settings_migrated: true, // マイグレーション済みフラグ

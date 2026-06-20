@@ -310,7 +310,7 @@ describe('SqliteClient', () => {
       expect(hasDocumentMock).toHaveBeenCalled();
       expect(createDocumentMock).toHaveBeenCalledWith({
         url: 'offscreen.html',
-        reasons: [chrome.offscreen.Reason.WORKERS, chrome.offscreen.Reason.LOCAL_STORAGE],
+        reasons: [browser.offscreen.Reason.WORKERS, browser.offscreen.Reason.LOCAL_STORAGE],
         justification: expect.any(String),
       });
     });

@@ -639,7 +639,7 @@ describe('getNotificationHmacKey', () => {
 
     test('破損したストレージデータから新規鍵を生成する', async () => {
         // isEncrypted()がtrueを返すが、復号化に失敗するデータを設定
-        await chrome.storage.local.set({
+        await browser.storage.local.set({
             'notification-signature-key': {
                 ciphertext: '!!!invalid-base64!!!',
                 iv: '!!!invalid-base64!!!'

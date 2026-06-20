@@ -36,7 +36,7 @@ export async function initTrancoConsentPanel(): Promise<void> {
     if (version) {
       const d = new Date(version);
       currentVersionEl.textContent = d.toLocaleDateString(
-        chrome.i18n.getUILanguage() || 'ja-JP',
+        browser.i18n.getUILanguage() || 'ja-JP',
         { year: 'numeric', month: 'long', day: 'numeric' }
       );
     } else {

@@ -26,19 +26,19 @@ describe('TabCache', () => {
         });
 
         it('initialize() でタブ一覧をキャッシュにロードできること', async () => {
-          // Mock chrome.tabs.query to return some tabs (callback-style API)
+          // Mock browser.tabs.query to return some tabs (callback-style API)
           const mockTabs = [
             { id: 1, title: 'Tab 1', url: 'https://example.com/1', favIconUrl: null },
             { id: 2, title: 'Tab 2', url: 'http://test.com', favIconUrl: null },
             { id: 3, title: 'Invalid', url: 'chrome://extensions', favIconUrl: null }
           ];
-          (chrome.tabs.query as any).mockImplementation((_query, callback) => {
+          (browser.tabs.query as any).mockImplementation((_query, callback) => {
             callback(mockTabs);
           });
 
           await tabCache.initialize();
 
-          expect(chrome.tabs.query).toHaveBeenCalledWith({}, expect.any(Function));
+          expect(browser.tabs.query).toHaveBeenCalledWith({}, expect.any(Function));
           // Only HTTP/HTTPS tabs with id and url should be cached
           expect(tabCache.size()).toBe(2);
           expect(tabCache.get(1)).toEqual({
@@ -222,7 +222,7 @@ describe('TabCache', () => {
 
     describe('初期化Promise', () => {
         it('初期化メソッドが呼ばれると初期化フラグがtrueになること', async () => {
-            // chrome.tabs.queryをモック
+            // browser.tabs.queryをモック
             global.chrome = {
                 tabs: {
                     query: (query, callback) => {
@@ -242,7 +242,7 @@ describe('TabCache', () => {
         });
 
         it('連続呼び出し時に適切に処理されること', async () => {
-            // chrome.tabs.queryをモック
+            // browser.tabs.queryをモック
             let callCount = 0;
             global.chrome = {
                 tabs: {

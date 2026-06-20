@@ -3,7 +3,7 @@
  * 【セキュリティ強化】マスターパスワードレート制限機能のテスト
  * 【テスト対象】: src/utils/rateLimiter.js の checkRateLimit, recordFailedAttempt, resetFailedAttempts 関数
  *
- * 注: chrome.storage.session モックは jest.setup.ts で設定済み
+ * 注: browser.storage.session モックは jest.setup.ts で設定済み
  */
 
 import { vi } from 'vitest';;
@@ -13,7 +13,7 @@ import { vi } from 'vitest';;
  * 各テスト実行前にモックされたsession storageをクリア
  */
 beforeEach(() => {
-    // chrome.storage.sessionをクリアしてテスト分離を確保
+    // browser.storage.sessionをクリアしてテスト分離を確保
     Object.defineProperty(chrome, 'storage', {
         value: {
             local: {
@@ -42,7 +42,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
      */
     test('初回認証成功時、失敗回数カウンターが増加しない', async () => {
         // 【テスト目的】: 正しいパスワードで認証した場合、失敗回数が増加しないことを確認
-        // 【テスト内容】：chrome.storage.sessionが空の状態でcheckRateLimitを呼び出し、許可されることを検証
+        // 【テスト内容】：browser.storage.sessionが空の状態でcheckRateLimitを呼び出し、許可されることを検証
         // 【期待される動作】: 認証成功時にsuccess:trueが返される
         // 🟢 信頼性レベル: 青信号（要件定義および既存コードのverifyMasterPassword動作から確信）
 
@@ -50,7 +50,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
         const { checkRateLimit } = await import('../rateLimiter.js');
 
         // 【テストデータ準備】空のsession storage
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({});
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({});
 
         // 【実際の処理実行】レート制限チェックを実行
         const result = await checkRateLimit();
@@ -72,7 +72,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
         const { checkRateLimit, recordFailedAttempt, resetFailedAttempts } = await import('../rateLimiter.js');
 
         // 【テストデータ準備】失敗回数を5回記録
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({
             passwordFailedAttempts: 4,
             firstFailedAttemptTime: Date.now() - 2 * 60 * 1000, // 2分前
         });
@@ -83,14 +83,14 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
         await resetFailedAttempts();
 
         // 【確認】: removeが全てのキーで呼ばれたことを確認
-        expect(chrome.storage.session.remove).toHaveBeenCalledWith([
+        expect(browser.storage.session.remove).toHaveBeenCalledWith([
             'passwordFailedAttempts',
             'firstFailedAttemptTime',
             'lockedUntil',
         ]);
 
         // 【リセット後の確認】: session storageが空の場合に許可される
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({});
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({});
         const result = await checkRateLimit();
 
         // 【結果検証】リセット後は認証が成功することを確認
@@ -110,7 +110,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
 
         // 【テストデータ準備】ロックアウト期間中（まだ10分経過していない）
         const lockedUntil = Date.now() + 10 * 60 * 1000; // 10分後に解除
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({
             lockedUntil: lockedUntil,
             passwordFailedAttempts: 5,
             firstFailedAttemptTime: Date.now() - 2 * 60 * 1000,
@@ -137,13 +137,13 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
         const { recordFailedAttempt } = await import('../rateLimiter.js');
 
         // 【テストデータ準備】空のsession storage
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({});
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({});
 
         // 【実際の処理実行】失敗を記録
         await recordFailedAttempt();
 
         // 【確認】: setが呼ばれ、失敗回数が1増加していることを確認
-        expect(chrome.storage.session.set).toHaveBeenCalledWith({
+        expect(browser.storage.session.set).toHaveBeenCalledWith({
             passwordFailedAttempts: 1,
             firstFailedAttemptTime: expect.any(Number),
         }); // 【確認内容】: 失敗回数がカウントされていること 🟢
@@ -162,7 +162,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
 
         // 【テストデータ準備】4回失敗済み（5分以内）
         const now = Date.now();
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({
             passwordFailedAttempts: 4,
             firstFailedAttemptTime: now - 2 * 60 * 1000, // 2分前
         });
@@ -171,7 +171,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
         await recordFailedAttempt();
 
         // 【実際の処理実行】6回目の試行でロックアウトチェック
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({
             passwordFailedAttempts: 5,
             firstFailedAttemptTime: now - 2 * 60 * 1000,
         });
@@ -180,7 +180,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
 
         // 【結果検証】ロックアウトが発動することを確認
         expect(result.success).toBe(false); // 【確認内容】: 認証が拒否されること 🟢
-        expect(chrome.storage.session.set).toHaveBeenCalledWith({
+        expect(browser.storage.session.set).toHaveBeenCalledWith({
             lockedUntil: expect.any(Number),
         }); // 【確認内容】: ロックアウト時刻が設定されたこと 🟢
     });
@@ -199,7 +199,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
         // 【テストデータ準備】ロックアウト期間が過ぎた状態
         const now = Date.now();
         const oldLockedUntil = now - 31 * 60 * 1000; // 31分前にロック設定
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({
             lockedUntil: oldLockedUntil,
             passwordFailedAttempts: 5,
             firstFailedAttemptTime: now - 35 * 60 * 1000, // 35分前
@@ -226,7 +226,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
 
         // 【テストデータ準備】5回失敗済みだが、初回から5分以上経過
         const now = Date.now();
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({
             passwordFailedAttempts: 5,
             firstFailedAttemptTime: now - 5 * 60 * 1000 - 1000, // 5分1秒前
         });
@@ -236,7 +236,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
 
         // 【結果検証】5分経過後は許可されることを確認
         expect(result.success).toBe(true); // 【確認内容】: 評価ウインドウ超過後は認証成功 🟢
-        expect(chrome.storage.session.remove).toHaveBeenCalledWith([
+        expect(browser.storage.session.remove).toHaveBeenCalledWith([
             'passwordFailedAttempts',
             'firstFailedAttemptTime',
             'lockedUntil',
@@ -256,7 +256,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
 
         // 【テストデータ準備】ロックアウト期間が1秒過ぎた状態
         const now = Date.now();
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({
             lockedUntil: now - 1000, // 1秒前にロック解除
             passwordFailedAttempts: 5,
             firstFailedAttemptTime: now - 32 * 60 * 1000,
@@ -271,18 +271,18 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
     });
 
     /**
-     * 境界値テスト: chrome.storage.sessionがクリアされた場合のリセット
+     * 境界値テスト: browser.storage.sessionがクリアされた場合のリセット
      */
-    test('chrome.storage.sessionがクリアされた場合のリセット', async () => {
+    test('browser.storage.sessionがクリアされた場合のリセット', async () => {
         // 【テスト目的】: session storageがクリアされた場合、全ての制限がリセットされることを確認
         // 【テスト内容】：ブラウザ終了などでsession storageがクリアされた後の挙動を検証
         // 【期待される動作】: storageが空の場合は常に認証が許可される
-        // 🟢 信頼性レベル: 青信号（chrome.storage.sessionの仕様）
+        // 🟢 信頼性レベル: 青信号（browser.storage.sessionの仕様）
 
         const { checkRateLimit } = await import('../rateLimiter.js');
 
-        // 【テストデータ準備】chrome.storage.sessionが空（クリアされた状態）
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({});
+        // 【テストデータ準備】browser.storage.sessionが空（クリアされた状態）
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({});
 
         // 【実際の処理実行】レート制限チェックを実行
         const result = await checkRateLimit();
@@ -299,12 +299,12 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
         // 【テスト目的】: セッション終了（閉じられた）後にレート制限が適切に初期化されることを確認
         // 【テスト内容】：新しいセッションで最初の認証が許可されることを検証
         // 【期待される動作】: 新しいセッションの最初の認証は常に許可される
-        // 🟢 信頼性レベル: 青信号（chrome.storage.sessionの仕様：ブラウザ終了で消去）
+        // 🟢 信頼性レベル: 青信号（browser.storage.sessionの仕様：ブラウザ終了で消去）
 
         const { checkRateLimit } = await import('../rateLimiter.js');
 
         // 【テストデータ準備】新しいセッション（storageが完全に空）
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({});
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({});
 
         // 【実際の処理実行】最初の認証を試行
         const result = await checkRateLimit();
@@ -326,7 +326,7 @@ describe('マスターパスワードレート制限（Refactorフェーズ）',
         const { checkRateLimit } = await import('../rateLimiter.js');
 
         // 【テストデータ準備】lockedUntilに不正な値（文字列）が設定された状態
-        (chrome.storage.session.get as vi.Mock).mockResolvedValue({
+        (browser.storage.session.get as vi.Mock).mockResolvedValue({
             lockedUntil: 'invalid-timestamp', // 不正なタイムスタンプ形式
             passwordFailedAttempts: 5,
             firstFailedAttemptTime: Date.now() - 2 * 60 * 1000,

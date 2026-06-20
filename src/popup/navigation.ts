@@ -53,8 +53,8 @@ export function openHistory(): void {
 
   clearAutoCloseTimer();
 
-  const historyUrl = chrome.runtime.getURL('options.html?tab=sqlite-history');
-  chrome.tabs.create({ url: historyUrl });
+  const historyUrl = browser.runtime.getURL('options.html?tab=sqlite-history');
+  browser.tabs.create({ url: historyUrl });
 
   window.close();
 }
@@ -66,8 +66,8 @@ export function showSettingsScreen(): void {
   clearAutoCloseTimer();
 
   // 【ダッシュボード遷移】: 設定を新しいタブのダッシュボードページで開く
-  const dashboardUrl = chrome.runtime.getURL('options.html');
-  chrome.tabs.create({ url: dashboardUrl });
+  const dashboardUrl = browser.runtime.getURL('options.html');
+  browser.tabs.create({ url: dashboardUrl });
 
   // ポップアップを閉じる
   window.close();

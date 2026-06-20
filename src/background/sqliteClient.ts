@@ -9,6 +9,7 @@
 import { addLog, LogType } from '../utils/logger.js';
 import { errorMessage } from '../utils/errorUtils.js';
 import { recordSqliteFailure, recordSqliteSuccess } from './sqliteAlert.js';
+import { handleOffscreenMessage } from '../offscreen/offscreen.js';
 
 const OFFSCREEN_DOCUMENT_PATH = 'offscreen.html';
 const MESSAGE_TIMEOUT_MS = 10000; // 10 seconds
@@ -56,8 +57,15 @@ export class SqliteClient {
     // Skip redundant browser IPC if we know the document is alive.
     if (this.offscreenAlive) return;
 
-    const hasOffscreen = await chrome.offscreen.hasDocument();
+    const hasOffscreen = await (browser.offscreen ? browser.offscreen.hasDocument() : Promise.resolve(false));
     if (hasOffscreen) {
+      this.offscreenAlive = true;
+      return;
+    }
+
+    if (!browser.offscreen) {
+      // In Firefox, we don't have offscreen API. 
+      // We will handle this by routing messages locally in the background script.
       this.offscreenAlive = true;
       return;
     }
@@ -67,9 +75,9 @@ export class SqliteClient {
       return;
     }
 
-    this.creatingOffscreenPromise = chrome.offscreen.createDocument({
+    this.creatingOffscreenPromise = browser.offscreen.createDocument({
       url: OFFSCREEN_DOCUMENT_PATH,
-      reasons: [chrome.offscreen.Reason.WORKERS, chrome.offscreen.Reason.LOCAL_STORAGE],
+      reasons: [browser.offscreen.Reason.WORKERS, browser.offscreen.Reason.LOCAL_STORAGE],
       justification: 'To access SQLite (wa-sqlite) for local browsing log storage.',
     });
 
@@ -87,6 +95,42 @@ export class SqliteClient {
   async msgOffscreen(type: string, payload: Record<string, unknown> = {}): Promise<OffscreenResponse> {
     try {
       await this.ensureOffscreenDocument();
+
+      // Firefox workaround: Handle offscreen messages locally in the background script
+      // to avoid DataCloneError and messaging loops.
+      if (!browser.offscreen) {
+        return await new Promise<OffscreenResponse>((resolve, reject) => {
+          const message = { type, target: 'offscreen', payload };
+          const sender = { id: browser.runtime.id };
+          try {
+            const isAsync = handleOffscreenMessage(
+              message,
+              sender as browser.runtime.MessageSender,
+              (response: unknown) => {
+                console.log(`[SqliteClient] Firefox direct handle for ${type}`, { response });
+                const res = response as OffscreenResponse;
+                if (res && res.error) {
+                  reject(new Error(res.error));
+                } else {
+                  // Serialization check
+                  try {
+                    JSON.stringify(res);
+                  } catch (e) {
+                    console.error('[SqliteClient] Firefox response NOT serializable', e);
+                  }
+                  resolve(res);
+                }
+              }
+            );
+            if (!isAsync) {
+              reject(new Error(`Offscreen handler for ${type} did not return true (async)`));
+            }
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }
+
       return await new Promise<OffscreenResponse>((resolve, reject) => {
         let settled = false;
         const settle = (fn: () => void) => {
@@ -99,11 +143,11 @@ export class SqliteClient {
           settle(() => reject(new Error(`Offscreen message '${type}' timed out after ${MESSAGE_TIMEOUT_MS}ms`)));
         }, MESSAGE_TIMEOUT_MS);
 
-        chrome.runtime.sendMessage(
+        browser.runtime.sendMessage(
           { type, target: 'offscreen', payload },
           (response: OffscreenResponse) => {
-            if (chrome.runtime.lastError) {
-              settle(() => reject(new Error(chrome.runtime.lastError?.message ?? 'Unknown error')));
+            if (browser.runtime.lastError) {
+              settle(() => reject(new Error(browser.runtime.lastError?.message ?? 'Unknown error')));
             } else if (response && response.error) {
               settle(() => reject(new Error(response.error)));
             } else {
@@ -128,7 +172,7 @@ export class SqliteClient {
       const response = await this.msgOffscreen(type, payload);
       if (response?.success) {
         recordSqliteSuccess();
-        return transform ? transform(response) : (response as unknown as T);
+        return transform ? transform(response) : (response as T);
       }
       recordSqliteFailure(type, response?.error || 'unknown');
       return null;

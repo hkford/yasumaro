@@ -178,7 +178,7 @@ describe('RecordingTriggerManager', () => {
     });
 
     it('falls back to defaults when storage.get throws', async () => {
-      (globalThis as any).chrome.storage.local.get = vi.fn().mockRejectedValue(new Error('Storage error'));
+      (globalThis as any).browser.storage.local.get = vi.fn().mockRejectedValue(new Error('Storage error'));
       manager.invalidateCache();
       const triggers = await manager.loadTriggers();
     });

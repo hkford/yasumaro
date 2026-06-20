@@ -5,20 +5,20 @@
  */
 
 import {
-  init as sqliteInit,
-  insert as sqliteInsert,
-  insertBatch as sqliteInsertBatch,
-  query as sqliteQuery,
-  search as sqliteSearch,
-  update as sqliteUpdate,
-  hardDelete as sqliteHardDelete,
-  toggleStar as sqliteToggleStar,
-  getCount as sqliteGetCount,
-  getStatus as sqliteGetStatus,
-  serialize as sqliteSerialize,
-  clearAll as sqliteClearAll,
-  purgeOldRecords as sqlitePurgeOldRecords,
-  _resetForTesting as sqliteResetForTesting,
+    init as sqliteInit,
+    insert as sqliteInsert,
+    insertBatch as sqliteInsertBatch,
+    query as sqliteQuery,
+    search as sqliteSearch,
+    update as sqliteUpdate,
+    hardDelete as sqliteHardDelete,
+    toggleStar as sqliteToggleStar,
+    getCount as sqliteGetCount,
+    getStatus as sqliteGetStatus,
+    serialize as sqliteSerialize,
+    clearAll as sqliteClearAll,
+    purgeOldRecords as sqlitePurgeOldRecords,
+    _resetForTesting as sqliteResetForTesting,
 } from './sqlite.js';
 import { errorMessage } from '../utils/errorUtils.js';
 
@@ -62,7 +62,10 @@ export const _resetSqliteForTesting = (): void => {
 
 // Helper to get the AI object
 export const getAI = (): AI | null | undefined => {
-    return window.ai || globalThis.ai || (typeof self !== 'undefined' ? (self as unknown as { ai?: AI }).ai : null);
+    // Type-safe access to AI API in various environments
+    interface AIGlobal { ai?: any }
+    const globalAi = (typeof self !== 'undefined' ? (self as Window & typeof globalThis & AIGlobal).ai : null);
+    return window.ai || globalThis.ai || globalAi || undefined;
 };
 
 // Check availability
@@ -126,7 +129,7 @@ export async function ensureSession(): Promise<boolean | { success: false; error
 // Handle messages from the service worker
 export function handleOffscreenMessage(
     message: unknown,
-    _sender: chrome.runtime.MessageSender,
+    _sender: browser.runtime.MessageSender,
     sendResponse: (response: unknown) => void
 ): boolean {
     if (typeof message !== 'object' || message === null || !('target' in message)) return false;
@@ -140,22 +143,22 @@ export function handleOffscreenMessage(
     // but NOT SQLITE_* operations.
     const isSqliteMessage = typeof msg.type === 'string' && msg.type.startsWith('SQLITE_');
     if (isSqliteMessage) {
-      // Block content scripts (which have a tab)
-      if (_sender.tab) {
-        sendResponse({
-          success: false,
-          error: 'Forbidden: SQLite operations are not available from content scripts.',
-        });
-        return true;
-      }
-      // Block external extensions (sender.id must match our extension)
-      if (_sender.id !== chrome.runtime.id) {
-        sendResponse({
-          success: false,
-          error: 'Forbidden: SQLite operations are not available from external extensions.',
-        });
-        return true;
-      }
+        // Block content scripts (which have a tab)
+        if (_sender.tab) {
+            sendResponse({
+                success: false,
+                error: 'Forbidden: SQLite operations are not available from content scripts.',
+            });
+            return true;
+        }
+        // Block external extensions (sender.id must match our extension)
+        if (_sender.id !== browser.runtime.id) {
+            sendResponse({
+                success: false,
+                error: 'Forbidden: SQLite operations are not available from external extensions.',
+            });
+            return true;
+        }
     }
 
     (async () => {
@@ -327,6 +330,6 @@ export function handleOffscreenMessage(
     return true; // Keep channel open for async response
 }
 
-if (typeof globalThis.chrome !== 'undefined' && chrome.runtime?.onMessage) {
-    chrome.runtime.onMessage.addListener(handleOffscreenMessage);
+if (typeof browser !== 'undefined' && browser.runtime?.onMessage) {
+    browser.runtime.onMessage.addListener(handleOffscreenMessage);
 }

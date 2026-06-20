@@ -22,20 +22,20 @@ export interface ITabCache {
      * タブをキャッシュに追加する
      * @param tab - 追加するタブ
      */
-    add(tab: chrome.tabs.Tab): void;
+    add(tab: browser.tabs.Tab): void;
 
     /**
      * タブIDからタブを取得する
      * @param tabId - タブID
      */
-    get(tabId: number): chrome.tabs.Tab | undefined;
+    get(tabId: number): browser.tabs.Tab | undefined;
 
     /**
      * タブのデータを更新する
      * @param tabId - タブID
      * @param data - 更新するデータ
      */
-    update(tabId: number, data: Partial<chrome.tabs.Tab>): void;
+    update(tabId: number, data: Partial<browser.tabs.Tab>): void;
 
     /**
      * タブをキャッシュから削除する
@@ -160,13 +160,13 @@ export interface ITabCacheStore {
      * @param tabId - タブID
      * @param tab - 保存するタブ
      */
-    set(tabId: number, tab: chrome.tabs.Tab): void;
+    set(tabId: number, tab: browser.tabs.Tab): void;
 
     /**
      * タブをキャッシュから取得する
      * @param tabId - タブID
      */
-    get(tabId: number): chrome.tabs.Tab | undefined;
+    get(tabId: number): browser.tabs.Tab | undefined;
 
     /**
      * タブをキャッシュから削除する
@@ -177,7 +177,7 @@ export interface ITabCacheStore {
     /**
      * すべてのタブを取得する
      */
-    entries(): IterableIterator<[number, chrome.tabs.Tab]>;
+    entries(): IterableIterator<[number, browser.tabs.Tab]>;
 }
 
 /**
@@ -186,9 +186,9 @@ export interface ITabCacheStore {
  * ```typescript
  * class TabCache implements ITabCache {
  *     async initialize() { /* ... *\/ }
- *     add(tab: chrome.tabs.Tab) { /* ... *\/ }
+ *     add(tab: browser.tabs.Tab) { /* ... *\/ }
  *     get(tabId: number) { /* ... *\/ }
- *     update(tabId: number, data: Partial<chrome.tabs.Tab>) { /* ... *\/ }
+ *     update(tabId: number, data: Partial<browser.tabs.Tab>) { /* ... *\/ }
  *     remove(tabId: number) { /* ... *\/ }
  * }
  *

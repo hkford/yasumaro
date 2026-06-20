@@ -6,7 +6,7 @@
 
 import { vi } from 'vitest';;
 
-// chrome.storage.local のモック
+// browser.storage.local のモック
 const mockStorage: Map<string, unknown> = new Map();
 
 const mockChromeStorageLocal = {

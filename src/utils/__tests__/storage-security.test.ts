@@ -74,7 +74,7 @@ const storageData: Record<string, any> = { settings_migrated: true };
         },
             runtime: {
                 id: 'test-extension-id',
-                getURL: vi.fn(() => 'chrome-extension://test-extension-id/'),
+                getURL: vi.fn(() => 'browser-extension://test-extension-id/'),
                 reconnect: vi.fn(),
                 sendMessage: vi.fn(() => Promise.resolve())
             }
@@ -158,7 +158,7 @@ describe('Master Password Security', () => {
             },
             runtime: {
                 id: 'test-extension-id',
-                getURL: vi.fn(() => 'chrome-extension://test-extension-id/'),
+                getURL: vi.fn(() => 'browser-extension://test-extension-id/'),
                 reconnect: vi.fn(),
                 sendMessage: vi.fn(() => Promise.resolve())
             }
@@ -185,7 +185,7 @@ describe('Master Password Security', () => {
 
             expect(result).toBe(true);
 
-            const data = await chrome.storage.local.get([
+            const data = await browser.storage.local.get([
                 'master_password_enabled',
                 'master_password_salt',
                 'master_password_hash',
@@ -208,7 +208,7 @@ describe('Master Password Security', () => {
 
         test('同じパスワードで異なるハッシュが生成される（ランダムソルト）', async () => {
             await setMasterPassword('password123');
-            const hash1 = (await chrome.storage.local.get('master_password_hash')).master_password_hash;
+            const hash1 = (await browser.storage.local.get('master_password_hash')).master_password_hash;
 
             clearEncryptionKeyCache();
             for (const key in storageData) {
@@ -216,7 +216,7 @@ describe('Master Password Security', () => {
             }
             storageData.settings_migrated = true;
             await setMasterPassword('password123');
-            const hash2 = (await chrome.storage.local.get('master_password_hash')).master_password_hash;
+            const hash2 = (await browser.storage.local.get('master_password_hash')).master_password_hash;
 
             expect(hash1).not.toBe(hash2);
         });
@@ -376,7 +376,7 @@ describe('Master Password Security', () => {
             expect(await isMasterPasswordEnabled()).toBe(false);
             expect(await isEncryptionLocked()).toBe(false);
 
-            const data = await chrome.storage.local.get([
+            const data = await browser.storage.local.get([
                 'master_password_enabled',
                 'master_password_salt',
                 'master_password_hash',
@@ -395,7 +395,7 @@ describe('Master Password Security', () => {
             const password = 'same-password';
 
             await setMasterPassword(password);
-            const hash1 = (await chrome.storage.local.get('master_password_hash')).master_password_hash;
+            const hash1 = (await browser.storage.local.get('master_password_hash')).master_password_hash;
 
             clearEncryptionKeyCache();
             for (const key in storageData) {
@@ -403,7 +403,7 @@ describe('Master Password Security', () => {
             }
             storageData.settings_migrated = true;
             await setMasterPassword(password);
-            const hash2 = (await chrome.storage.local.get('master_password_hash')).master_password_hash;
+            const hash2 = (await browser.storage.local.get('master_password_hash')).master_password_hash;
 
             expect(hash1).not.toBe(hash2);
         });
@@ -412,7 +412,7 @@ describe('Master Password Security', () => {
             const password = 'password123';
             await setMasterPassword(password);
 
-            const data = await chrome.storage.local.get(null);
+            const data = await browser.storage.local.get(null);
             // 保存されているデータにパスワードそのものが含まれていないことを確認
             Object.values(data).forEach((value: any) => {
                 expect(value).not.toBe(password);
@@ -425,7 +425,7 @@ describe('Master Password Security', () => {
 
             await getOrCreateEncryptionKey();
 
-            const data = await chrome.storage.local.get(null);
+            const data = await browser.storage.local.get(null);
             expect(data.encryption_key).toBeFalsy();
         });
     });

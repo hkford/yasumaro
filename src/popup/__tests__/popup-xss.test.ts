@@ -169,7 +169,7 @@ function simulateVulnerableCode(portInputValue, protocolValue = 'https') {
   const portValid = !isNaN(port) && port >= 1 && port <= 65535;
 
   if (!portValid) {
-    statusDiv.textContent = chrome.i18n.getMessage('errorPort');
+    statusDiv.textContent = browser.i18n.getMessage('errorPort');
     return {
       vulnerable: false,
       blocked: true,
@@ -180,7 +180,7 @@ function simulateVulnerableCode(portInputValue, protocolValue = 'https') {
     };
   }
 
-  statusDiv.textContent = chrome.i18n.getMessage('connectionFailed', { message: result.message });
+  statusDiv.textContent = browser.i18n.getMessage('connectionFailed', { message: result.message });
   statusDiv.className = 'error';
 
   let constructedUrl = null;
@@ -190,7 +190,7 @@ function simulateVulnerableCode(portInputValue, protocolValue = 'https') {
     // VULNERABILITY: portInput.value is used directly, not the validated 'port' variable
     const url = `https://127.0.0.1:${portInput.value}/`;
     constructedUrl = url;
-    statusDiv.innerHTML += `<br><a href="${url}" target="_blank">${chrome.i18n.getMessage('acceptCertificate')}</a>`;
+    statusDiv.innerHTML += `<br><a href="${url}" target="_blank">${browser.i18n.getMessage('acceptCertificate')}</a>`;
   }
 
   // CRITICAL: Check if malicious content from input is in the constructed URL
@@ -250,7 +250,7 @@ function simulateSecureCode(portInputValue, protocolValue = 'https') {
   const portValid = !isNaN(port) && port >= 1 && port <= 65535;
 
   if (!portValid) {
-    statusDiv.textContent = chrome.i18n.getMessage('errorPort');
+    statusDiv.textContent = browser.i18n.getMessage('errorPort');
     return {
       vulnerable: false,
       blocked: true,
@@ -261,7 +261,7 @@ function simulateSecureCode(portInputValue, protocolValue = 'https') {
     };
   }
 
-  statusDiv.textContent = chrome.i18n.getMessage('connectionFailed', { message: result.message });
+  statusDiv.textContent = browser.i18n.getMessage('connectionFailed', { message: result.message });
   statusDiv.className = 'error';
 
   // SECURITY FIX: Use the validated port number, NOT the raw input
@@ -272,7 +272,7 @@ function simulateSecureCode(portInputValue, protocolValue = 'https') {
     const link = document.createElement('a');
     link.href = safeUrl;
     link.target = '_blank';
-    link.textContent = chrome.i18n.getMessage('acceptCertificate');
+    link.textContent = browser.i18n.getMessage('acceptCertificate');
     link.rel = 'noopener noreferrer';
 
     statusDiv.appendChild(document.createElement('br'));

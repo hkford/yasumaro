@@ -4,7 +4,7 @@ import { handleOffscreenMessage, _resetSqliteForTesting } from '../offscreen.js'
 
 const EXTENSION_ID = 'test-extension-id';
 
-// Ensure chrome.runtime.id is defined so sender validation passes
+// Ensure browser.runtime.id is defined so sender validation passes
 if (!(globalThis as Record<string, unknown>).chrome) {
   (globalThis as Record<string, unknown>).chrome = {};
 }
@@ -21,7 +21,7 @@ function makeMessage(type: string, payload?: Record<string, unknown>) {
 }
 
 function makeSenderNoTab() {
-  return { id: EXTENSION_ID } as chrome.runtime.MessageSender;
+  return { id: EXTENSION_ID } as browser.runtime.MessageSender;
 }
 
 describe('handleOffscreenMessage - SQLite routing', () => {
@@ -190,9 +190,9 @@ describe('handleOffscreenMessage - SQLite sender validation', () => {
 
   it('rejects SQLITE_INSERT from content scripts (sender with tab)', async () => {
     const responses: unknown[] = [];
-    const senderWithTab: chrome.runtime.MessageSender = {
-      tab: { id: 123, url: 'https://evil.com' } as chrome.tabs.Tab,
-    } as chrome.runtime.MessageSender;
+    const senderWithTab: browser.runtime.MessageSender = {
+      tab: { id: 123, url: 'https://evil.com' } as browser.tabs.Tab,
+    } as browser.runtime.MessageSender;
 
     handleOffscreenMessage(
       makeMessage('SQLITE_INSERT', {
@@ -211,9 +211,9 @@ describe('handleOffscreenMessage - SQLite sender validation', () => {
 
   it('rejects SQLITE_QUERY from content scripts', async () => {
     const responses: unknown[] = [];
-    const senderWithTab: chrome.runtime.MessageSender = {
-      tab: { id: 123, url: 'https://example.com' } as chrome.tabs.Tab,
-    } as chrome.runtime.MessageSender;
+    const senderWithTab: browser.runtime.MessageSender = {
+      tab: { id: 123, url: 'https://example.com' } as browser.tabs.Tab,
+    } as browser.runtime.MessageSender;
 
     handleOffscreenMessage(
       makeMessage('SQLITE_QUERY', {}),
@@ -228,9 +228,9 @@ describe('handleOffscreenMessage - SQLite sender validation', () => {
 
   it('rejects SQLITE_DELETE from content scripts', async () => {
     const responses: unknown[] = [];
-    const senderWithTab: chrome.runtime.MessageSender = {
-      tab: { id: 123, url: 'https://example.com' } as chrome.tabs.Tab,
-    } as chrome.runtime.MessageSender;
+    const senderWithTab: browser.runtime.MessageSender = {
+      tab: { id: 123, url: 'https://example.com' } as browser.tabs.Tab,
+    } as browser.runtime.MessageSender;
 
     handleOffscreenMessage(
       makeMessage('SQLITE_DELETE', { id: 1 }),
@@ -245,7 +245,7 @@ describe('handleOffscreenMessage - SQLite sender validation', () => {
 
   it('allows SQLITE_INIT from service worker (no tab)', async () => {
     const responses: unknown[] = [];
-    const senderNoTab: chrome.runtime.MessageSender = makeSenderNoTab();
+    const senderNoTab: browser.runtime.MessageSender = makeSenderNoTab();
 
     const result = handleOffscreenMessage(
       makeMessage('SQLITE_INIT'),
@@ -257,9 +257,9 @@ describe('handleOffscreenMessage - SQLite sender validation', () => {
 
   it('rejects SQLITE_INSERT_BATCH from content scripts (sender with tab)', async () => {
     const responses: unknown[] = [];
-    const senderWithTab: chrome.runtime.MessageSender = {
-      tab: { id: 123, url: 'https://evil.com' } as chrome.tabs.Tab,
-    } as chrome.runtime.MessageSender;
+    const senderWithTab: browser.runtime.MessageSender = {
+      tab: { id: 123, url: 'https://evil.com' } as browser.tabs.Tab,
+    } as browser.runtime.MessageSender;
 
     handleOffscreenMessage(
       makeMessage('SQLITE_INSERT_BATCH', {

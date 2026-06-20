@@ -8,14 +8,7 @@ import { errorMessage } from '../utils/errorUtils.js';
 import { addLog, LogType } from '../utils/logger.js';
 import { showStatus } from './settingsUiHelper.js';
 
-interface UblockRule {
-  rawLine: string;
-}
-
-interface UblockRules {
-  blockRules: UblockRule[];
-  exceptionRules: UblockRule[];
-}
+import type { UblockRules } from '../utils/types.js';
 
 /**
  * uBlockルールをテキスト形式でエクスポート
@@ -28,18 +21,32 @@ export function exportToText(rules: UblockRules): string {
   // メタデータ
   lines.push(`! Auto-exported from Yasumaro`);
   lines.push(`! Exported at: ${new Date().toISOString()}`);
-  lines.push(`! Total rules: ${rules.blockRules.length + rules.exceptionRules.length}`);
+  lines.push(`! Total rules: ${(rules.blockRules?.length || 0) + (rules.exceptionRules?.length || 0)}`);
   lines.push('');
 
   // 例外ルール
-  rules.exceptionRules.forEach(rule => {
-    lines.push(rule.rawLine);
-  });
+  if (rules.exceptionRules) {
+    rules.exceptionRules.forEach(rule => {
+      if (typeof rule === 'string') {
+        lines.push(rule);
+      } else {
+        const ruleObj = rule as any;
+        lines.push(ruleObj.rawLine || ruleObj.domain || '');
+      }
+    });
+  }
 
   // ブロックルール
-  rules.blockRules.forEach(rule => {
-    lines.push(rule.rawLine);
-  });
+  if (rules.blockRules) {
+    rules.blockRules.forEach(rule => {
+      if (typeof rule === 'string') {
+        lines.push(rule);
+      } else {
+        const ruleObj = rule as any;
+        lines.push(ruleObj.rawLine || ruleObj.domain || '');
+      }
+    });
+  }
 
   return lines.join('\n');
 }
@@ -101,7 +108,7 @@ export function init(): void {
 async function handleExport(): Promise<void> {
   try {
     const settings = await getSettings();
-    const rules = settings[StorageKeys.UBLOCK_RULES] as unknown as UblockRules;
+    const rules = settings[StorageKeys.UBLOCK_RULES] as UblockRules;
 
     if (!rules) {
       showStatus('domainStatus', 'エクスポートするルールがありません', 'error');
@@ -122,7 +129,7 @@ async function handleExport(): Promise<void> {
 async function handleCopy(): Promise<void> {
   try {
     const settings = await getSettings();
-    const rules = settings[StorageKeys.UBLOCK_RULES] as unknown as UblockRules;
+    const rules = settings[StorageKeys.UBLOCK_RULES] as UblockRules;
 
     if (!rules) {
       showStatus('domainStatus', 'コピーするルールがありません', 'error');

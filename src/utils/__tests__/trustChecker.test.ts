@@ -10,7 +10,7 @@
 
 import { vi } from 'vitest';;
 
-// Mock chrome.storage.local - re-set in beforeEach to survive clearAllMocks
+// Mock browser.storage.local - re-set in beforeEach to survive clearAllMocks
 const mockStorage = new Map();
 
 function setupChromeMocks() {
@@ -155,7 +155,7 @@ describe('TrustChecker - Phase 2 - Alert Settings Save/Load', () => {
 
     await checker.saveAlertSettings({ alertFinance: false });
 
-    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+    expect(browser.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({ 'alert_finance': false })
     );
   });
@@ -191,7 +191,7 @@ describe('TrustChecker - Phase 2 - Alert Settings Save/Load', () => {
 
     const config = await checker.getAlertConfig();
     expect(config.alertSensitive).toBe(false);
-    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+    expect(browser.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({ 'alert_sensitive': false })
     );
   });
@@ -201,9 +201,9 @@ describe('TrustChecker - Phase 2 - Alert Settings Save/Load', () => {
     const checker = new TrustChecker();
     await checker.loadAlertSettings();
 
-    const setCallsBefore = (chrome.storage.local.set as vi.Mock).mock.calls.length;
+    const setCallsBefore = (browser.storage.local.set as vi.Mock).mock.calls.length;
     await checker.saveAlertSettings({});
-    const setCallsAfter = (chrome.storage.local.set as vi.Mock).mock.calls.length;
+    const setCallsAfter = (browser.storage.local.set as vi.Mock).mock.calls.length;
 
     expect(setCallsAfter).toBe(setCallsBefore);
   });
@@ -213,7 +213,7 @@ describe('TrustChecker - Phase 2 - Alert Settings Save/Load', () => {
     const checker = new TrustChecker();
 
     // Override storage.get to throw for this test
-    (chrome.storage.local.get as vi.Mock).mockRejectedValueOnce(new Error('Storage error'));
+    (browser.storage.local.get as vi.Mock).mockRejectedValueOnce(new Error('Storage error'));
 
     await checker.loadAlertSettings();
 

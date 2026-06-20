@@ -49,8 +49,8 @@ describe('saveSqliteStep — Optimistic Lock (H5)', () => {
     expect(mockSqlite.update).toHaveBeenCalled();
   });
 
-  it('does not write to old chrome.storage.savedUrlsWithTimestamps', async () => {
-    const setSpy = vi.spyOn(chrome.storage.local, 'set');
+  it('does not write to old browser.storage.savedUrlsWithTimestamps', async () => {
+    const setSpy = vi.spyOn(browser.storage.local, 'set');
     const mockSqlite = makeMockSqlite();
 
     (withOptimisticLock as unknown as ReturnType<typeof vi.fn>).mockImplementation(

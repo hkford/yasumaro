@@ -30,7 +30,7 @@ describe('navigation', () => {
 
     global.chrome = {
       runtime: {
-        getURL: vi.fn((path: string) => `chrome-extension://test/${path}`)
+        getURL: vi.fn((path: string) => `browser-extension://test/${path}`)
       },
       tabs: {
         create: vi.fn()
@@ -90,7 +90,7 @@ describe('navigation', () => {
       showSettingsScreen();
 
       expect(clearAutoCloseTimer).toHaveBeenCalled();
-      expect(global.chrome.tabs.create).toHaveBeenCalledWith({ url: 'chrome-extension://test/options.html' });
+      expect(global.browser.tabs.create).toHaveBeenCalledWith({ url: 'browser-extension://test/options.html' });
       expect(window.close).toHaveBeenCalled();
     });
 
@@ -102,7 +102,7 @@ describe('navigation', () => {
       }).not.toThrow();
 
       expect(clearAutoCloseTimer).toHaveBeenCalled();
-      expect(global.chrome.tabs.create).toHaveBeenCalledWith({ url: 'chrome-extension://test/options.html' });
+      expect(global.browser.tabs.create).toHaveBeenCalledWith({ url: 'browser-extension://test/options.html' });
       expect(window.close).toHaveBeenCalled();
     });
   });

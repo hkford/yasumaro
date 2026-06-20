@@ -83,10 +83,10 @@ describe('privatePageDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupDialogDOM();
-    // Ensure chrome.runtime.sendMessage returns a promise by default.
+    // Ensure browser.runtime.sendMessage returns a promise by default.
     // The vitest.setup.ts beforeEach reassigns it to the callback-based mock,
     // so we must override it here again with a promise-returning version.
-    (global.chrome.runtime.sendMessage as any).mockResolvedValue({ success: true });
+    (global.browser.runtime.sendMessage as any).mockResolvedValue({ success: true });
   });
 
   afterEach(() => {
@@ -130,8 +130,8 @@ describe('privatePageDialog', () => {
 
   describe('showPrivatePageDialog', () => {
     it('should show the dialog and set message text', async () => {
-      // Override chrome.i18n.getMessage for this test
-      (global.chrome.i18n.getMessage as any).mockImplementation(
+      // Override browser.i18n.getMessage for this test
+      (global.browser.i18n.getMessage as any).mockImplementation(
         (key: string, substitutions?: string[]) => {
           if (key === 'warningPrivatePageMessage') {
             return `Warning: ${substitutions?.[0]} - ${substitutions?.[1]}`;
@@ -157,7 +157,7 @@ describe('privatePageDialog', () => {
     });
 
     it('should use reason when headerValue is empty', async () => {
-      (global.chrome.i18n.getMessage as any).mockImplementation(
+      (global.browser.i18n.getMessage as any).mockImplementation(
         (key: string, substitutions?: string[]) => {
           if (key === 'warningPrivatePageMessage') {
             return `Warning: ${substitutions?.[0]} - ${substitutions?.[1]}`;
@@ -212,7 +212,7 @@ describe('privatePageDialog', () => {
 
   describe('dialog-save-once button', () => {
     it('should send record message with force=true and show success', async () => {
-      (global.chrome.runtime.sendMessage as any).mockResolvedValue({ success: true });
+      (global.browser.runtime.sendMessage as any).mockResolvedValue({ success: true });
 
       const mod = await import('../privatePageDialog.js');
       mod.setCurrentPendingSave(createPendingSave());
@@ -220,7 +220,7 @@ describe('privatePageDialog', () => {
       document.getElementById('dialog-save-once')!.click();
 
       await vi.waitFor(() => {
-        expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({
+        expect(global.browser.runtime.sendMessage).toHaveBeenCalledWith({
           type: 'record',
           data: {
             title: 'Test Page',
@@ -238,7 +238,7 @@ describe('privatePageDialog', () => {
     });
 
     it('should show error when record fails', async () => {
-      (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+      (global.browser.runtime.sendMessage as any).mockResolvedValue({
         success: false,
         error: 'Connection failed',
       });
@@ -259,7 +259,7 @@ describe('privatePageDialog', () => {
     });
 
     it('should produce an unhandled rejection when sendMessage fails (no try-catch in source)', async () => {
-      (global.chrome.runtime.sendMessage as any).mockRejectedValue(
+      (global.browser.runtime.sendMessage as any).mockRejectedValue(
         new Error('Extension context invalidated')
       );
 
@@ -293,7 +293,7 @@ describe('privatePageDialog', () => {
       // Allow microtasks to process
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(global.browser.runtime.sendMessage).not.toHaveBeenCalled();
     });
   });
 
@@ -316,7 +316,7 @@ describe('privatePageDialog', () => {
         );
       });
 
-      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({
+      expect(global.browser.runtime.sendMessage).toHaveBeenCalledWith({
         type: 'record',
         data: expect.objectContaining({ force: true }),
       });
@@ -339,7 +339,7 @@ describe('privatePageDialog', () => {
       // (the source code checks !whitelist.includes(domain) before saving).
       // recordWithForce should still be called though.
       await vi.waitFor(() => {
-        expect(global.chrome.runtime.sendMessage).toHaveBeenCalled();
+        expect(global.browser.runtime.sendMessage).toHaveBeenCalled();
       });
 
       expect(saveSettings).not.toHaveBeenCalled();
@@ -358,7 +358,7 @@ describe('privatePageDialog', () => {
 
       await vi.waitFor(() => {
         // Should still attempt record
-        expect(global.chrome.runtime.sendMessage).toHaveBeenCalled();
+        expect(global.browser.runtime.sendMessage).toHaveBeenCalled();
       });
     });
   });
@@ -383,7 +383,7 @@ describe('privatePageDialog', () => {
         );
       });
 
-      expect(global.chrome.runtime.sendMessage).toHaveBeenCalled();
+      expect(global.browser.runtime.sendMessage).toHaveBeenCalled();
     });
 
     it('should not duplicate existing URL in whitelist', async () => {
@@ -402,7 +402,7 @@ describe('privatePageDialog', () => {
       // saveSettings should NOT be called because the URL already exists
       // (the source code checks !whitelist.includes(url) before saving).
       await vi.waitFor(() => {
-        expect(global.chrome.runtime.sendMessage).toHaveBeenCalled();
+        expect(global.browser.runtime.sendMessage).toHaveBeenCalled();
       });
 
       expect(saveSettings).not.toHaveBeenCalled();
@@ -421,7 +421,7 @@ describe('privatePageDialog', () => {
       document.getElementById('dialog-save-once')!.click();
 
       await vi.waitFor(() => {
-        expect(global.chrome.runtime.sendMessage).toHaveBeenCalled();
+        expect(global.browser.runtime.sendMessage).toHaveBeenCalled();
       });
 
       // Dialog should be closed
@@ -440,12 +440,12 @@ describe('privatePageDialog', () => {
       document.getElementById('dialog-save-once')!.click();
 
       await vi.waitFor(() => {
-        expect(global.chrome.runtime.sendMessage).toHaveBeenCalled();
+        expect(global.browser.runtime.sendMessage).toHaveBeenCalled();
       });
     });
 
     it('should handle record response with undefined error field', async () => {
-      (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+      (global.browser.runtime.sendMessage as any).mockResolvedValue({
         success: false,
       });
 
@@ -474,7 +474,7 @@ describe('privatePageDialog', () => {
     });
 
     it('should not call startAutoCloseTimer on failed save', async () => {
-      (global.chrome.runtime.sendMessage as any).mockResolvedValue({
+      (global.browser.runtime.sendMessage as any).mockResolvedValue({
         success: false,
         error: 'Error',
       });

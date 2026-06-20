@@ -33,7 +33,7 @@ console.error = (...args: unknown[]) => {
 };
 
 import { Crypto, CryptoKey } from '@peculiar/webcrypto';
-import { vi } from 'vitest';
+import { vi, beforeEach, afterEach } from 'vitest';
 
 // ============================================================================
 // Polyfills
@@ -281,39 +281,39 @@ const chromeRuntimeMock = {
       }),
     },
   },
-   runtime: {
-     lastError: null as any,
-     sendMessage: chromeRuntimeMock.sendMessage,
-     onMessage: chromeRuntimeMock.onMessage,
-     onInstalled: {
-       addListener: vi.fn(),
-     },
-     onStartup: {
-       addListener: vi.fn(),
-     },
-     getURL: chromeRuntimeMock.getURL,
-     getBackgroundPage: vi.fn(),
-     getContexts: vi.fn(),
-     connect: vi.fn(),
-     connectNative: vi.fn(),
-   },
-   tabs: {
-     query: vi.fn(),
-     sendMessage: vi.fn((_tabId, _message, callback) => {
-       if (callback && typeof callback === 'function') {
-         callback();
-       }
-     }),
-     onRemoved: {
-       addListener: vi.fn(),
-     },
-     onActivated: {
-       addListener: vi.fn(),
-     },
-     onUpdated: {
-       addListener: vi.fn(),
-     },
-   },
+  runtime: {
+    lastError: null as any,
+    sendMessage: chromeRuntimeMock.sendMessage,
+    onMessage: chromeRuntimeMock.onMessage,
+    onInstalled: {
+      addListener: vi.fn(),
+    },
+    onStartup: {
+      addListener: vi.fn(),
+    },
+    getURL: chromeRuntimeMock.getURL,
+    getBackgroundPage: vi.fn(),
+    getContexts: vi.fn(),
+    connect: vi.fn(),
+    connectNative: vi.fn(),
+  },
+  tabs: {
+    query: vi.fn(),
+    sendMessage: vi.fn((_tabId, _message, callback) => {
+      if (callback && typeof callback === 'function') {
+        callback();
+      }
+    }),
+    onRemoved: {
+      addListener: vi.fn(),
+    },
+    onActivated: {
+      addListener: vi.fn(),
+    },
+    onUpdated: {
+      addListener: vi.fn(),
+    },
+  },
   notifications: {
     create: vi.fn(),
     update: vi.fn(),
@@ -621,30 +621,30 @@ afterEach(() => {
 // elements do not trigger jsdom warnings. This is sufficient for tests that
 // only verify the function does not throw (e.g. renderFunnelChart).
 const _mockCanvasRenderingContext2D = {
-  fillRect: () => {},
-  fillText: () => {},
-  strokeText: () => {},
+  fillRect: () => { },
+  fillText: () => { },
+  strokeText: () => { },
   measureText: () => ({ width: 0, actualBoundingBoxAscent: 0, actualBoundingBoxDescent: 0 }),
-  beginPath: () => {},
-  moveTo: () => {},
-  lineTo: () => {},
-  stroke: () => {},
-  arc: () => {},
-  fill: () => {},
-  clearRect: () => {},
-  save: () => {},
-  restore: () => {},
-  setTransform: () => {},
-  createLinearGradient: () => ({ addColorStop: () => {} }),
-  roundRect: () => {},
-  rect: () => {},
-  closePath: () => {},
-  clip: () => {},
-  scale: () => {},
-  rotate: () => {},
-  translate: () => {},
-  transform: () => {},
-  setLineDash: () => {},
+  beginPath: () => { },
+  moveTo: () => { },
+  lineTo: () => { },
+  stroke: () => { },
+  arc: () => { },
+  fill: () => { },
+  clearRect: () => { },
+  save: () => { },
+  restore: () => { },
+  setTransform: () => { },
+  createLinearGradient: () => ({ addColorStop: () => { } }),
+  roundRect: () => { },
+  rect: () => { },
+  closePath: () => { },
+  clip: () => { },
+  scale: () => { },
+  rotate: () => { },
+  translate: () => { },
+  transform: () => { },
+  setLineDash: () => { },
   getLineDash: () => [],
   lineWidth: 1,
   strokeStyle: '',
@@ -658,7 +658,7 @@ const _mockCanvasRenderingContext2D = {
 
 // Only mock canvas in jsdom environment (HTMLCanvasElement is undefined in node)
 if (typeof HTMLCanvasElement !== 'undefined') {
-  HTMLCanvasElement.prototype.getContext = function(_contextId: string): CanvasRenderingContext2D | null {
+  HTMLCanvasElement.prototype.getContext = function (_contextId: string): CanvasRenderingContext2D | null {
     return _mockCanvasRenderingContext2D;
   };
 }
@@ -682,5 +682,16 @@ if (typeof global.matchMedia === 'undefined') {
 }
 
 // Global alert and confirm mocks
-global.alert = vi.fn(() => {});
+global.alert = vi.fn(() => { });
 global.confirm = vi.fn(() => false); // Default to cancel
+
+// ============================================================================
+// Browser API Mock Alias
+// ============================================================================
+// Ensure 'browser' is also available as a global mock for cross-browser tests.
+// Use a getter to ensure 'browser' always reflects the current value of 'chrome'
+// even if a test reassigns 'global.chrome'.
+Object.defineProperty(global, 'browser', {
+  get: () => (global as any).chrome,
+  configurable: true,
+});

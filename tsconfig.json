@@ -32,14 +32,17 @@
             ]
         },
         "types": [
-          "chrome",
-          "vitest",
-          "node",
-          "svelte"
+            "chrome",
+            "vitest",
+            "node",
+            "svelte",
+            "webextension-polyfill"
         ]
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        ".wxt/types/*.d.ts",
+        ".wxt/wxt.d.ts"
     ],
     "exclude": [
         "node_modules",

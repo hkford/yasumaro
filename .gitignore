@@ -39,7 +39,6 @@ dev-docs/blog-*
 
 # Local override files
 *.local
-.*
 !docs/.nojekyll
 
 # Allow GitHub Actions workflow files (not matched by .* above)

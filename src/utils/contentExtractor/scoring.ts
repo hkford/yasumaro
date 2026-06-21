@@ -3,117 +3,155 @@
  * テキストスコア計算とメインコンテンツ候補要素の抽出
  */
 
-import { isExcludedElement, isAsianContentElement } from './classifier.js';
+import { isExcludedElement } from './classifier.js';
+
+// 句読点（日本語・英語・中国語）
+const SENTENCE_MARKERS = /[。.．,，、]/g;
 
 /**
- * 要素のテキストスコアを計算
- * テキストの多さ、段落の数、リンク密度などに基づいてスコアを計算
- * 【パフォーマンス最適化】DOM走査を一度に集約し、querySelectorAll呼び出しを削減
+ * 候補要素とそのスコアを保持する
  */
-export function calculateTextScore(element: Element): number {
-    let score = 0;
-
-    // テキストノードの長さ
-    const text = ('innerText' in element ? (element as HTMLElement).innerText : null) || element.textContent || '';
-    score += text.length;
-
-    // 単一DOM走覧でp, h*, ul, ol, aの要素をカウント（パフォーマンス改善）
-    let pCount = 0;
-    let hCount = 0;
-    let listCount = 0;
-    let linkCount = 0;
-    let linkTextLength = 0;
-
-    const walker = document.createTreeWalker(
-        element,
-        NodeFilter.SHOW_ELEMENT,
-        undefined
-    );
-
-    let node: Node | null = walker.nextNode();
-    while (node) {
-        const elem = node as Element;
-        const tag = elem.tagName.toLowerCase();
-
-        if (tag === 'p') {
-            pCount++;
-        } else if (/^h[1-7]$/.test(tag)) {
-            hCount++;
-        } else if (tag === 'ul' || tag === 'ol') {
-            listCount++;
-        } else if (tag === 'a') {
-            linkCount++;
-            linkTextLength += ('innerText' in elem ? (elem as HTMLElement).innerText?.length : null) || elem.textContent?.length || 0;
-        }
-
-        node = walker.nextNode();
-    }
-
-    // スコア計算
-    score += pCount * 50;      // 段落: 50点
-    score += hCount * 100;     // 見出し: 100点
-    score += listCount * 30;   // リスト: 30点
-
-    // リンク密度（比率が高い場合はスコアを下げる）
-    const linkRatio = text.length > 0 ? linkTextLength / text.length : 0;
-    if (linkRatio > 0.5) {
-        score *= 0.3; // リンクが多い要素はスコアを下げる
-    }
-
-    return score;
+interface ScoredElement {
+    element: Element;
+    score: number;
 }
 
 /**
- * メインコンテンツの候補要素を抽出
+ * クラス名やIDに基づいて初期ボーナス・減点を計算する
+ */
+function getClassWeight(element: Element): number {
+    let weight = 0;
+    const className = (element.className && typeof element.className === 'string') ? element.className.toLowerCase() : '';
+    const id = (element.id || '').toLowerCase();
+    const combined = `${className} ${id}`;
+
+    // ボーナスキーワード
+    if (combined.match(/article|content|body|main|story|blog|post/)) {
+        weight += 25;
+    }
+
+    // 減点キーワード
+    if (combined.match(/sidebar|comment|foot|nav|widget|related|extra|ad|sponsor|header/)) {
+        weight -= 25;
+    }
+
+    return weight;
+}
+
+/**
+ * リンク密度のペナルティを適用する
+ */
+function applyLinkDensityPenalty(element: Element, score: number): number {
+    const rawText = element.textContent || '';
+    const cleanText = rawText.replace(/\s+/g, '');
+    if (!cleanText) return 0;
+
+    let linkTextLength = 0;
+    const links = element.querySelectorAll('a');
+    links.forEach(link => {
+        linkTextLength += (link.textContent || '').replace(/\s+/g, '').length;
+    });
+
+    // テキスト全体に対するリンクテキストの割合 (空白無視)
+    const linkRatio = Math.min(linkTextLength / cleanText.length, 1.0);
+
+    // リンク密度に基づいたペナルティ
+    // 50%超えは大幅に減点
+    if (linkRatio > 0.5) {
+        return score * (1 - linkRatio) * 0.5;
+    }
+
+    // それ以外は連続的なペナルティ
+    return score * (1 - linkRatio * linkRatio);
+}
+
+/**
+ * メインコンテンツの候補要素を抽出 (Readability-inspired Bubbling Algorithm)
  */
 export function findMainContentCandidates(): Element[] {
-    const candidates: Element[] = [];
+    const scoredElements = new Map<Element, number>();
 
-    // 優先ターゲット: article, main
-    const mainTags = document.querySelectorAll('article, main');
-    for (const tag of mainTags) {
-        if (!isExcludedElement(tag)) {
-            candidates.push(tag);
+    // 1. 本文らしき「ノード」をすべて見つける (P, またはテキストを含むDIV)
+    const allParagraphs = document.querySelectorAll('p, div, section, article');
+
+    allParagraphs.forEach(node => {
+        const text = (node.textContent || '').trim();
+        if (text.length < 25) return; // 短すぎるものは無視
+
+        // このノード自体の基本スコアを計算
+        let contentScore = 1; // 基本点
+
+        // 句読点の数で文章らしさを評価 (1つにつき1点)
+        const markerCount = (text.match(SENTENCE_MARKERS) || []).length;
+        contentScore += markerCount;
+
+        // 文字数ボーナス (100文字ごとにプラス)
+        contentScore += Math.min(Math.floor(text.length / 100), 3);
+
+        // 2. スコアを親に伝播（バブリング）させる
+        let parent = node.parentElement;
+        let depth = 0;
+        while (parent && depth < 3) {
+            if (isExcludedElement(parent)) break;
+
+            const currentScore = scoredElements.get(parent) || 0;
+            // 距離に応じて加算 (親: 100%, 祖父: 50%, 曽祖父: 25%)
+            const addedScore = contentScore / (Math.pow(2, depth));
+
+            // 初めてスコアがつく要素にはクラス名ボーナスも加算
+            const initialWeight = currentScore === 0 ? getClassWeight(parent) : 0;
+
+            scoredElements.set(parent, currentScore + addedScore + initialWeight);
+
+            parent = parent.parentElement;
+            depth++;
         }
-    }
+    });
 
-    // 候補がある場合、最もスコアの高い要素を選択
-    if (candidates.length > 0) {
-        // スコア順にソート
-        candidates.sort((a, b) => calculateTextScore(b) - calculateTextScore(a));
-        return candidates.slice(0, 1);
-    }
+    // 3. 候補リストの作成と最終調整
+    const candidates: ScoredElement[] = [];
+    scoredElements.forEach((score, element) => {
+        const tag = element.tagName.toLowerCase();
 
-    // アジア圏のコンテンツ構造を検索
-    const allElements = document.querySelectorAll('div, section');
-    for (const elem of allElements) {
-        if (isAsianContentElement(elem) && !isExcludedElement(elem)) {
-            candidates.push(elem);
+        // BODYとHTMLは広すぎるため、基本的には候補から除外する
+        if (tag === 'body' || tag === 'html') return;
+
+        // 全体のリンク密度で最終調整
+        let finalScore = applyLinkDensityPenalty(element, score);
+
+        // セマンティックタグ (article, main) への最終ボーナス
+        if (tag === 'article' || tag === 'main') {
+            finalScore *= 1.2;
         }
+
+        // 最低閾値
+        if (finalScore > 20) {
+            candidates.push({ element, score: finalScore });
+        }
+    });
+
+    // 4. スコア順にソートして上位を返す
+    candidates.sort((a, b) => b.score - a.score);
+
+    // 上位3つを返す。もし候補が全くなければ、bodyをフォールバックとして返す
+    if (candidates.length === 0 && document.body) {
+        return [document.body];
     }
 
-    // アジアコンテンツが見つかった場合、スコア順にソートして返す
-    if (candidates.length > 0) {
-        candidates.sort((a, b) => calculateTextScore(b) - calculateTextScore(a));
-        return candidates.slice(0, 3);
-    }
+    return candidates.slice(0, 3).map(c => c.element);
+}
 
-    // 候補がない場合、階層的に探索
-    const body = document.body;
-    if (!body) {
-        return [];
-    }
+/**
+ * 互換性のためのラップ関数
+ */
+export function calculateTextScore(element: Element): number {
+    const text = (element.textContent || '').trim();
+    if (text.length < 5) return 0;
 
-    // body直下の子要素を候補にする
-    const directChildren = Array.from(body.children).filter(
-        child => !isExcludedElement(child)
-    );
+    // バブリングを無視した簡易計算
+    let score = text.length / 10;
+    const markerCount = (text.match(SENTENCE_MARKERS) || []).length;
+    score += markerCount * 5;
 
-    for (const child of directChildren) {
-        candidates.push(child);
-    }
-
-    // スコア順にソートし、上位3候補を返す
-    candidates.sort((a, b) => calculateTextScore(b) - calculateTextScore(a));
-    return candidates.slice(0, 3);
+    return applyLinkDensityPenalty(element, score + getClassWeight(element));
 }

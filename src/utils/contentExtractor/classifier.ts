@@ -95,6 +95,21 @@ export const ASIA_CONTENT_ID_PATTERNS = [
 ];
 
 /**
+ * 要素からクラス名文字列を安全に取得する（SVG等のAnimatedString対策）
+ */
+function getClassName(element: Element): string {
+    const classes = element.className;
+    if (typeof classes === 'string') {
+        return classes;
+    }
+    // SVGAnimatedString など、文字列でない場合は baseVal を使用するか空文字を返す
+    if (classes && typeof classes === 'object' && 'baseVal' in classes) {
+        return (classes as { baseVal: string }).baseVal || '';
+    }
+    return '';
+}
+
+/**
  * 要素が除外対象かどうかを判定
  * @internal テスト用にエクスポート
  */
@@ -116,10 +131,12 @@ export function isExcludedElement(element: Element): boolean {
     }
 
     // クラス名パターンで除外
-    const classes = element.className.toLowerCase();
-    for (const pattern of EXCLUDED_CLASS_PATTERNS) {
-        if (classes.includes(pattern)) {
-            return true;
+    const className = getClassName(element).toLowerCase();
+    if (className) {
+        for (const pattern of EXCLUDED_CLASS_PATTERNS) {
+            if (className.includes(pattern)) {
+                return true;
+            }
         }
     }
 
@@ -134,14 +151,22 @@ export function isExcludedElement(element: Element): boolean {
 export function isAsianContentElement(element: Element): boolean {
     // Check if DOM is available (for Node.js/test environments)
     if (typeof document === 'undefined') return false;
-    
-    const classes = (element.className || '').toLowerCase();
+
+    const className = getClassName(element).toLowerCase();
     const id = (element.id || '').toLowerCase();
 
     // Check by class name
-    for (const pattern of ASIA_CONTENT_CLASS_PATTERNS) {
-        if (classes.includes(pattern)) {
-            return true;
+    if (className) {
+        // Tailwind等の "text-gray-500" や "contents" (display: contents) などへの誤爆を防ぐため
+        // クラス名を分割して完全一致または特定のキーワードを含むかチェック
+        const classList = className.split(/\s+/);
+        for (const pattern of ASIA_CONTENT_CLASS_PATTERNS) {
+            for (const cls of classList) {
+                // 完全一致、または "article-" 等の特定の接頭辞を持つ場合
+                if (cls === pattern || (pattern.length > 4 && (cls.startsWith(`${pattern}-`) || cls.endsWith(`-${pattern}`)))) {
+                    return true;
+                }
+            }
         }
     }
 

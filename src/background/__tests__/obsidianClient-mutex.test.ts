@@ -11,9 +11,12 @@ import { buildDailyNotePath } from '../../utils/dailyNotePathBuilder.js';
 import { NoteSectionEditor } from '../noteSectionEditor.js';
 import { addLog, LogType } from '../../utils/logger.js';
 
+declare const browser: any;
+
 vi.mock('../../utils/storage.js');
 vi.mock('../../utils/dailyNotePathBuilder.js', () => ({
-  buildDailyNotePath: vi.fn((pathRaw) => '2026-02-07')
+  buildDailyNotePath: vi.fn((pathRaw) => '2026-02-07'),
+  buildHierarchicalDailyNotePath: vi.fn((pathRaw) => `path/to/${pathRaw || '2026-02-07'}`)
 }));
 vi.mock('../noteSectionEditor.js', () => ({
   NoteSectionEditor: {
@@ -40,7 +43,7 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
 
     // storageのデフォルトモック
     // @ts-expect-error - vi.fn() type narrowing issue
-  
+
     storage.getSettings.mockResolvedValue({
       OBSIDIAN_API_KEY: 'test_key',
       OBSIDIAN_PROTOCOL: 'https',
@@ -66,15 +69,15 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
 
     it('appendToDailyNoteが正常に動作すること', async () => {
       global.fetch = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
           text: () => Promise.resolve('Not found')
         })
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: true
         });
@@ -90,8 +93,8 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
     it('同じデータでの並列呼び出しがシリアライズされること', async () => {
       // Fetchのモック（MERGE用）
       const fetchMock = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockImplementation((url, options) => {
           if (options.method === 'GET') {
             return Promise.resolve({
@@ -121,8 +124,8 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
     });
 
     it('エラーが発生してもロックが解放されること', async () => {
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+      // @ts-expect-error - vi.fn() type narrowing issue
+
       global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       await expect(obsidianClient.appendToDailyNote('Test content')).rejects.toThrow();
@@ -130,15 +133,15 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
       // エラー後も次の呼び出しが可能であることを確認
       global.fetch.mockReset();
       global.fetch = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
           text: () => Promise.resolve('Not found')
         })
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: true
         });
@@ -150,8 +153,8 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
 
     it('エラー後の2回目の呼び出しが正常に動作すること', async () => {
       // 最初の呼び出しは失敗
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+      // @ts-expect-error - vi.fn() type narrowing issue
+
       global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       await expect(obsidianClient.appendToDailyNote('Test content')).rejects.toThrow();
@@ -159,15 +162,15 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
       // モックをリセットして成功させる
       global.fetch.mockReset();
       global.fetch = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
           text: () => Promise.resolve('Not found')
         })
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: true
         });
@@ -183,8 +186,8 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
     it('異なるコンテンツを並列で書き込んでも正しく処理されること', async () => {
       const callOrder = [];
       const fetchMock = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockImplementation((url, options) => {
           if (options.method === 'GET') {
             return Promise.resolve({
@@ -224,8 +227,8 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
 
     it('大量の並列呼び出しを正常に処理すること', async () => {
       const fetchMock = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockImplementation((url, options) => {
           if (options.method === 'GET') {
             return Promise.resolve({
@@ -258,15 +261,15 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
   describe('エッジケース', () => {
     it('空文字列のコンテンツを書き込めること', async () => {
       global.fetch = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
           text: () => Promise.resolve('Not found')
         })
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: true
         });
@@ -280,17 +283,17 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
       const longContent = 'a'.repeat(100000);
 
       global.fetch = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
           text: () => Promise.resolve('Not found')
         })
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
-            ok: true
+          ok: true
         });
 
       await expect(obsidianClient.appendToDailyNote(longContent)).resolves.toBeUndefined();
@@ -299,8 +302,8 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
     });
 
     it('APIキーが空の場合のエラーハンドリング', async () => {
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+      // @ts-expect-error - vi.fn() type narrowing issue
+
       storage.getSettings.mockResolvedValue({
         OBSIDIAN_API_KEY: '',
         OBSIDIAN_PROTOCOL: 'https',
@@ -311,8 +314,8 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
       await expect(obsidianClient.appendToDailyNote('Test content')).rejects.toThrow('API key is missing');
 
       // ロックが解放されていることを確認（次の呼び出しが可能）
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+      // @ts-expect-error - vi.fn() type narrowing issue
+
       storage.getSettings.mockResolvedValue({
         OBSIDIAN_API_KEY: 'new_key',
         OBSIDIAN_PROTOCOL: 'https',
@@ -321,15 +324,15 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
       });
 
       global.fetch = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
           text: () => Promise.resolve('Not found')
         })
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: true
         });
@@ -343,15 +346,15 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
   describe('パフォーマンス検証', () => {
     it('Mutexのオーバーヘッドが最小限であること', async () => {
       global.fetch = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
           text: () => Promise.resolve('Not found')
         })
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: true
         });
@@ -369,8 +372,8 @@ describe('ObsidianClient: Mutex ロック機構（タスク6）', () => {
 
     it('連続呼び出しでのオーバーヘッド検証', async () => {
       const fetchMock = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockImplementation((url, options) => {
           if (options.method === 'GET') {
             return Promise.resolve({
@@ -415,7 +418,7 @@ describe('Problem #6: Mutexキューサイズ制限とタイムアウト', () =>
 
     // storageのデフォルトモック
     // @ts-expect-error - vi.fn() type narrowing issue
-  
+
     storage.getSettings.mockResolvedValue({
       OBSIDIAN_API_KEY: 'test_key',
       OBSIDIAN_PROTOCOL: 'https',
@@ -446,8 +449,8 @@ describe('Problem #6: Mutexキューサイズ制限とタイムアウト', () =>
 
     it('大量の並列リクエスト（50個以内）を正常に処理できること', async () => {
       const fetchMock = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockImplementation((url, options) => {
           if (options.method === 'GET') {
             return Promise.resolve({
@@ -492,15 +495,15 @@ describe('Problem #6: Mutexキューサイズ制限とタイムアウト', () =>
 
       // fetchを成功させる
       global.fetch = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
           text: () => Promise.resolve('Not found')
         })
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: true
         });
@@ -512,15 +515,15 @@ describe('Problem #6: Mutexキューサイズ制限とタイムアウト', () =>
 
     it('30秒以内で正常なリクエストが完了すること', async () => {
       global.fetch = vi.fn()
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
           text: () => Promise.resolve('Not found')
         })
-    // @ts-expect-error - vi.fn() type narrowing issue
-  
+        // @ts-expect-error - vi.fn() type narrowing issue
+
         .mockResolvedValueOnce({
           ok: true
         });

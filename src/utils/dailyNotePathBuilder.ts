@@ -55,3 +55,25 @@ export function buildDailyNotePath(pathRaw: string, date: Date = new Date()): st
         .replace(/DD/gu, day)
         .replace(/YYYY-MM-DD/gu, today);
 }
+
+/**
+ * 階層化された日次ノートのフルパスを構築（year/month/file）
+ * @param {string} pathRaw - ユーザー入力のベースパス
+ * @param {Date} date - 日付
+ * @returns {string} 階層構造を含むフルパス（拡張子なし）
+ */
+export function buildHierarchicalDailyNotePath(pathRaw: string, date: Date = new Date()): string {
+    const fileName = buildDailyNotePath('', date);
+    const dailyPath = buildDailyNotePath(pathRaw, date);
+    let pathSegment = dailyPath ? `${dailyPath}/` : '';
+
+    // ユーザー設定に YYYY または MM が含まれていない場合、自動的に階層を追加
+    if (!pathRaw.includes('YYYY')) {
+        pathSegment += String(date.getFullYear()) + '/';
+    }
+    if (!pathRaw.includes('MM')) {
+        pathSegment += String(date.getMonth() + 1).padStart(2, '0') + '/';
+    }
+
+    return `${pathSegment}${fileName}`;
+}

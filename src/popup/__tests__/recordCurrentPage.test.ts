@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+declare const browser: any;
+
 vi.mock('../tabUtils.js', () => ({
     getCurrentTab: vi.fn(),
     isRecordable: vi.fn().mockReturnValue(true),
@@ -16,6 +18,7 @@ vi.mock('../../utils/storage.js', () => ({
     StorageKeys: {
         PII_CONFIRMATION_UI: 'pii_confirmation_ui',
         DOMAIN_WHITELIST: 'domain_whitelist',
+        DOMAIN_BLACKLIST: 'domain_blacklist',
     },
 }));
 
@@ -76,7 +79,8 @@ import { showError } from '../errorUtils.js';
 import { showSpinner } from '../spinner.js';
 
 // getURL must return a valid URL for new URL() in loadCurrentTab
-vi.spyOn(browser.runtime, 'getURL').mockImplementation((path: string) =>
+// getURL must return a valid URL for new URL() in loadCurrentTab
+(globalThis as any).browser.runtime.getURL = vi.fn((path: string) =>
     `browser-extension://test-extension-id${path}`
 );
 
@@ -187,6 +191,7 @@ describe('recordCurrentPage', () => {
         document.body.innerHTML = `
             <div id="mainStatus"></div>
             <button id="recordBtn"></button>
+            <button id="blacklistBtn"></button>
             <div id="tagResultPanel"></div>
         `;
         // Reset mocks
@@ -264,10 +269,11 @@ describe('recordCurrentPage', () => {
         expect(btn.onclick).toBeDefined();
         expect(typeof btn.onclick).toBe('function');
 
-        // Trigger onclick to cover the arrow function at L415
-        await (btn.onclick!() as Promise<void>);
+        // Trigger onclick to cover the arrow function at L483 (formerly L415)
+        const handler = btn.onclick as (ev: PointerEvent) => Promise<void>;
+        await handler.call(btn, new PointerEvent('click'));
 
         // Verify recordCurrentPage was invoked via showSpinner call
-        expect(showSpinner).toHaveBeenCalled();
+        expect(showSpinner).toHaveBeenCalledWith(expect.any(String));
     });
 });

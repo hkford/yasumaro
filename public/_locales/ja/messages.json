@@ -78,7 +78,7 @@
     "message": "デイリーノートのパス"
   },
   "dailyNotePathPlaceholder": {
-    "message": "例: 092.Daily"
+    "message": "例: 092.Daily/YYYY/MM"
   },
   "aiProvider": {
     "message": "AIプロバイダー"
@@ -367,6 +367,12 @@
   },
   "domainAdded": {
     "message": "ドメイン \"{domain}\" を追加しました"
+  },
+  "blacklistThisDomain": {
+    "message": "🚫 ドメインを禁止"
+  },
+  "domainAddedToBlacklist": {
+    "message": "ドメイン \"{domain}\" をブラックリストに追加しました"
   },
   "filterModeRequired": {
     "message": "フィルターモードを選択してください"
@@ -1493,7 +1499,6 @@
   "recordingConditionsDesc": {
     "message": "自動記録とAI処理の閾値を設定します。"
   },
-
   "recordingSection": {
     "message": "記録条件"
   },
@@ -1871,9 +1876,6 @@
   },
   "aiSummaryCleansingShortSeqCount": {
     "message": "連続数閾値"
-  },
-  "aiSummaryCleansingSymbolLineDesc": {
-    "message": "短文要素の連続削除（30文字以下の要素が5つ以上連続した場合）。"
   },
   "aiSummaryCleansingSymbolLineDesc": {
     "message": "特殊記号行の削除（| » ◀ ▶ 等のみの行）。"

@@ -78,7 +78,7 @@
     "message": "Daily Note Path"
   },
   "dailyNotePathPlaceholder": {
-    "message": "e.g. 092.Daily"
+    "message": "e.g. 092.Daily/YYYY/MM"
   },
   "aiProvider": {
     "message": "AI Provider"
@@ -367,6 +367,12 @@
   },
   "domainAdded": {
     "message": "Added domain \"{domain}\""
+  },
+  "blacklistThisDomain": {
+    "message": "🚫 Blacklist Domain"
+  },
+  "domainAddedToBlacklist": {
+    "message": "Added domain \"{domain}\" to blacklist"
   },
   "filterModeRequired": {
     "message": "Please select a filter mode"
@@ -1496,7 +1502,7 @@
   "recordingConditionsDesc": {
     "message": "Set thresholds for automatic recording and AI processing."
   },
-    "recordingSection": {
+  "recordingSection": {
     "message": "Recording Conditions"
   },
   "retentionPolicyTitle": {
@@ -1873,9 +1879,6 @@
   },
   "aiSummaryCleansingShortSeqCount": {
     "message": "Consecutive count threshold"
-  },
-  "aiSummaryCleansingSymbolLineDesc": {
-    "message": "Short sequence removal (remove when 5+ elements with ≤30 chars consecutive)."
   },
   "aiSummaryCleansingSymbolLineDesc": {
     "message": "Symbol-only line removal (lines with only | » ◀ ▶ etc.)."

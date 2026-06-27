@@ -12,6 +12,8 @@ import { logError, ErrorCode } from '../utils/logger.js';
 import type { ContentResponse, PreviewResponse } from './mainTypes.js';
 import { setCurrentPendingSave } from './privatePageDialog.js';
 import { updateCleansingStatus, updateTrustStatus, initStatusPanel as _initStatusPanel } from './statusPanel.js';
+import { saveSettings } from '../utils/storage.js';
+import { extractDomain } from '../utils/domainUtils.js';
 
 let _recordCurrentPageFn: ((force: boolean) => Promise<void>) | null = null;
 
@@ -55,6 +57,70 @@ export async function loadCurrentTab(): Promise<void> {
       recordBtn.disabled = false;
       recordBtn.textContent = getMessage('recordNow') || '📝 Record Now';
     }
+  }
+
+  const blacklistBtn = document.getElementById('blacklistBtn') as HTMLButtonElement;
+  if (blacklistBtn) {
+    if (!isRecordable(tab)) {
+      blacklistBtn.style.display = 'none';
+    } else {
+      const settings = await getSettings();
+      const blacklist = settings[StorageKeys.DOMAIN_BLACKLIST] || [];
+      const domain = extractDomain(tab.url || '');
+      if (domain && blacklist.includes(domain)) {
+        blacklistBtn.disabled = true;
+        blacklistBtn.textContent = '🚫 Already Blacklisted';
+      } else {
+        blacklistBtn.style.display = 'block';
+        blacklistBtn.disabled = false;
+        blacklistBtn.textContent = getMessage('blacklistThisDomain') || '🚫 Blacklist Domain';
+        blacklistBtn.onclick = () => void handleBlacklistDomain();
+      }
+    }
+  }
+}
+
+export async function handleBlacklistDomain(): Promise<void> {
+  const statusDiv = document.getElementById('mainStatus');
+  const blacklistBtn = document.getElementById('blacklistBtn') as HTMLButtonElement | null;
+  const tab = await getCurrentTab();
+
+  if (!tab?.url || !statusDiv) return;
+
+  const domain = extractDomain(tab.url);
+  if (!domain) {
+    statusDiv.textContent = getMessage('failedToExtractDomain');
+    statusDiv.className = 'error';
+    return;
+  }
+
+  showSpinner(getMessage('saving'));
+
+  try {
+    const settings = await getSettings();
+    const blacklist = settings[StorageKeys.DOMAIN_BLACKLIST] || [];
+    if (!blacklist.includes(domain)) {
+      blacklist.push(domain);
+      await saveSettings({ [StorageKeys.DOMAIN_BLACKLIST]: blacklist }, true);
+
+      statusDiv.textContent = getMessage('domainAddedToBlacklist', { domain }) || `Added ${domain} to blacklist`;
+      statusDiv.className = 'success';
+
+      if (blacklistBtn) {
+        blacklistBtn.disabled = true;
+        blacklistBtn.textContent = '🚫 Already Blacklisted';
+      }
+
+      // Refresh UI
+      await _initStatusPanel();
+      await loadCurrentTab();
+    }
+  } catch (error) {
+    logError('Failed to blacklist domain', { cause: error }, ErrorCode.STORAGE_WRITE_FAILURE);
+    statusDiv.textContent = getMessage('saveError');
+    statusDiv.className = 'error';
+  } finally {
+    hideSpinner();
   }
 }
 
@@ -131,7 +197,7 @@ async function forceRecord(
     hideSpinner();
 
     if (result && result.success) {
-      browser.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch(() => {});
+      browser.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch(() => { });
 
       const totalDuration = performance.now() - startTime;
       const message = formatSuccessMessage(totalDuration, result.aiDuration, result.obsidianDuration !== undefined);
@@ -382,7 +448,7 @@ export async function recordCurrentPage(force: boolean = false): Promise<void> {
     if (result && result.success) {
       hideSpinner();
 
-      browser.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch(() => {});
+      browser.runtime.sendMessage({ type: 'ACTIVITY_UPDATE', payload: {} }).catch(() => { });
 
       const totalDuration = performance.now() - startTime;
       const message = formatSuccessMessage(totalDuration, result.aiDuration, result.obsidianDuration !== undefined);

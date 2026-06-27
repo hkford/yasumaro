@@ -1,5 +1,5 @@
 import { getSettings, StorageKeys, Settings } from '../utils/storage.js';
-import { buildDailyNotePath } from '../utils/dailyNotePathBuilder.js';
+import { buildDailyNotePath, buildHierarchicalDailyNotePath } from '../utils/dailyNotePathBuilder.js';
 import { NoteSectionEditor } from './noteSectionEditor.js';
 import { Mutex } from './Mutex.js';
 import { addLog, LogType } from '../utils/logger.js';
@@ -197,10 +197,9 @@ export class ObsidianClient {
             const { baseUrl, headers, settings } = await this._getConfig();
 
             // Settings型は StorageKeys でアクセス可能
+            const now = new Date();
             const dailyPathRaw = settings[StorageKeys.OBSIDIAN_DAILY_PATH] || '';
-            const dailyPath = buildDailyNotePath(dailyPathRaw);
-            const pathSegment = dailyPath ? `${dailyPath}/` : '';
-            const targetUrl = `${baseUrl}/vault/${pathSegment}${buildDailyNotePath('')}.md`;
+            const targetUrl = `${baseUrl}/vault/${buildHierarchicalDailyNotePath(dailyPathRaw, now)}.md`;
 
             try {
                 const existingContent = await this._fetchExistingContent(targetUrl, headers);

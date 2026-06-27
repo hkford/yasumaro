@@ -17,7 +17,7 @@ export const DEFAULT_SETTINGS: DeepReadonly<Settings> = {
     [StorageKeys.MIN_SCROLL_DEPTH]: 50,
     [StorageKeys.GEMINI_API_KEY]: '',
     [StorageKeys.GEMINI_MODEL]: 'gemini-1.5-flash',
-    [StorageKeys.OBSIDIAN_DAILY_PATH]: '092.Daily',
+    [StorageKeys.OBSIDIAN_DAILY_PATH]: '092.Daily/YYYY/MM',
     [StorageKeys.AI_PROVIDER]: 'openai',
     [StorageKeys.OPENAI_BASE_URL]: 'https://api.groq.com/openai/v1',
     [StorageKeys.OPENAI_API_KEY]: '',
@@ -37,7 +37,13 @@ export const DEFAULT_SETTINGS: DeepReadonly<Settings> = {
     [StorageKeys.DOMAIN_BLACKLIST]: [
         'amazon.co.jp', 'amazon.com', 'yahoo.co.jp', 'yahoo.com',
         'facebook.com', 'twitter.com', 'x.com', 'instagram.com',
-        'youtube.com', 'google.com', 'google.co.jp'
+        'youtube.com', 'google.com', 'google.co.jp', 'github.com',
+        'onedrive.live.com', 'arxiv.org', 'news.yahoo.co.jp', 'linkedin.com',
+        'togetter.com', 'bsky.app', 'e5489.jr-odekake.net', 'ameblo.jp',
+        'search.google.com', 'posfie.com', 'ja.wikipedia.org', 'dic.pixiv.net',
+        'lib.city.ota.tokyo.jp', 'book.asahi.com', 'account.apple.com',
+        'apple.com', 'mail.google.com', 'w.atwiki.jp', 'furusato-tax.jp',
+        'furunavi.jp'
     ],
     [StorageKeys.DOMAIN_FILTER_MODE]: 'blacklist',
     [StorageKeys.PRIVACY_MODE]: 'masked_cloud',

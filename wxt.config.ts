@@ -34,6 +34,8 @@ export default defineConfig({
 
     const manifest: any = {
       manifest_version: 3,
+      // 【開発者向け】Extension IDを固定する場合は、ここに公開鍵(base64)を設定してください
+      // key: 'YOUR_BASE64_PUBLIC_KEY_HERE',
       name: '__MSG_extensionName__',
       short_name: '__MSG_extensionShortName__',
       version: '6.0.4',

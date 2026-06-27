@@ -43,17 +43,19 @@ import { vi, beforeEach, afterEach } from 'vitest';
 if (typeof global.TextEncoder === 'undefined') {
   global.TextEncoder = class TextEncoder {
     encode(str: string): Uint8Array {
-      return Buffer.from(str, 'utf-8') as any;
+      const buffer = Buffer.from(str, 'utf-8');
+      return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
     }
-  } as any;
+  } as unknown as typeof TextEncoder;
 }
 
 if (typeof global.TextDecoder === 'undefined') {
   global.TextDecoder = class TextDecoder {
     decode(buffer: ArrayBuffer | Uint8Array): string {
-      return Buffer.from(buffer).toString('utf-8');
+      const uint8 = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+      return Buffer.from(uint8).toString('utf-8');
     }
-  } as any;
+  } as unknown as typeof TextDecoder;
 }
 
 // btoa/atob polyfill for Node.js environment (used by urlNotificationHandlers)
@@ -62,6 +64,20 @@ if (typeof global.btoa === 'undefined') {
 }
 if (typeof global.atob === 'undefined') {
   global.atob = (b64: string) => Buffer.from(b64, 'base64').toString('binary');
+}
+
+// PointerEvent polyfill for environments where it is missing (like jsdom or node)
+if (typeof global.PointerEvent === 'undefined') {
+  // Use MouseEvent if it exists, otherwise use a plain Object as base
+  const BaseClass = typeof MouseEvent !== 'undefined' ? MouseEvent : class {
+    constructor(..._args: unknown[]) { }
+  };
+
+  (global as unknown as { PointerEvent: unknown }).PointerEvent = class PointerEvent extends (BaseClass as { new(type: string, params?: unknown): object }) {
+    constructor(type: string, params: unknown = {}) {
+      super(type, params);
+    }
+  };
 }
 
 // Web Crypto API polyfill for Vitest testing environment
@@ -109,18 +125,18 @@ vi.stubGlobal('import.meta', {
 // ============================================================================
 
 // In-memory storage
-const localStorage: Record<string, any> = {};
-const syncStorage: Record<string, any> = {};
+const localStorage: Record<string, unknown> = {};
+const syncStorage: Record<string, unknown> = {};
 
 // Session storage (ephemeral)
-const sessionStorage: Record<string, any> = {};
+const sessionStorage: Record<string, unknown> = {};
 
 // Chrome Storage Mock
 const chromeStorageMock = {
   local: {
-    get: vi.fn<Promise<Record<string, any>>, [string | string[] | null | undefined]>(
+    get: vi.fn<(keys?: string | string[] | null) => Promise<Record<string, unknown>>>(
       (keys?: string | string[] | null) => {
-        let result: Record<string, any> = {};
+        let result: Record<string, unknown> = {};
 
         if (keys === null || keys === undefined) {
           result = { ...localStorage };
@@ -139,11 +155,11 @@ const chromeStorageMock = {
         return Promise.resolve(result);
       }
     ),
-    set: vi.fn<Promise<void>, [Record<string, any>]>((items) => {
+    set: vi.fn<(items: Record<string, unknown>) => Promise<void>>((items) => {
       Object.assign(localStorage, items);
       return Promise.resolve();
     }),
-    remove: vi.fn<Promise<void>, [string | string[]]>((keys) => {
+    remove: vi.fn<(keys: string | string[]) => Promise<void>>((keys) => {
       if (Array.isArray(keys)) {
         keys.forEach((key) => delete localStorage[key]);
       } else {
@@ -151,16 +167,16 @@ const chromeStorageMock = {
       }
       return Promise.resolve();
     }),
-    clear: vi.fn<Promise<void>, []>(() => {
+    clear: vi.fn<() => Promise<void>>(() => {
       Object.keys(localStorage).forEach((key) => delete localStorage[key]);
       return Promise.resolve();
     }),
-    getBytesInUse: vi.fn<Promise<number>, []>(() => Promise.resolve(1024)),
+    getBytesInUse: vi.fn<() => Promise<number>>(() => Promise.resolve(1024)),
   },
   session: {
-    get: vi.fn<Promise<Record<string, any>>, [string | string[] | null | undefined]>(
+    get: vi.fn<(keys?: string | string[] | null) => Promise<Record<string, unknown>>>(
       (keys?: string | string[] | null) => {
-        let result: Record<string, any> = {};
+        let result: Record<string, unknown> = {};
 
         if (keys === null || keys === undefined) {
           result = { ...sessionStorage };
@@ -179,11 +195,11 @@ const chromeStorageMock = {
         return Promise.resolve(result);
       }
     ),
-    set: vi.fn<Promise<void>, [Record<string, any>]>((items) => {
+    set: vi.fn<(items: Record<string, unknown>) => Promise<void>>((items) => {
       Object.assign(sessionStorage, items);
       return Promise.resolve();
     }),
-    remove: vi.fn<Promise<void>, [string | string[]]>((keys) => {
+    remove: vi.fn<(keys: string | string[]) => Promise<void>>((keys) => {
       if (Array.isArray(keys)) {
         keys.forEach((key) => delete sessionStorage[key]);
       } else {
@@ -191,7 +207,7 @@ const chromeStorageMock = {
       }
       return Promise.resolve();
     }),
-    clear: vi.fn<Promise<void>, []>(() => {
+    clear: vi.fn<() => Promise<void>>(() => {
       Object.keys(sessionStorage).forEach((key) => delete sessionStorage[key]);
       return Promise.resolve();
     }),
@@ -200,9 +216,9 @@ const chromeStorageMock = {
 
 // Chrome Runtime Mock
 const chromeRuntimeMock = {
-  getURL: vi.fn<string, [string]>((path) => path),
-  sendMessage: vi.fn<void | Promise<any>, any[]>((_message, callback) => {
-    const lastError = (global as any).chrome.runtime?.lastError;
+  getURL: vi.fn<(path: string) => string>((path) => path),
+  sendMessage: vi.fn<(_message: unknown, callback?: (response?: unknown) => void) => void | Promise<unknown>>((_message, callback) => {
+    const lastError = (global as { chrome?: { runtime?: { lastError?: { message: string } | null } } }).chrome?.runtime?.lastError;
     if (callback && typeof callback === 'function') {
       if (lastError) {
         callback();
@@ -212,7 +228,7 @@ const chromeRuntimeMock = {
     }
   }),
   onMessage: {
-    addListener: vi.fn(),
+    addListener: vi.fn<(callback: (message: unknown, sender: unknown, sendResponse: (response?: unknown) => void) => void) => void>(),
   },
 };
 
@@ -224,46 +240,58 @@ const chromeRuntimeMock = {
  * Simulate a chrome.runtime.lastError for the next sendMessage call
  * Usage in tests: simulateSendMessageError('Could not establish connection');
  */
-(global as any).simulateSendMessageError = (message: string) => {
-  (global as any).chrome.runtime.lastError = { message };
+(global as Record<string, unknown>).simulateSendMessageError = (message: string) => {
+  const chrome = (global as Record<string, any>).chrome;
+  if (chrome?.runtime) {
+    chrome.runtime.lastError = { message };
+  }
 };
 
 /**
  * Reset chrome.runtime.lastError to null
  * Usage in tests: resetSendMessageError();
  */
-(global as any).resetSendMessageError = () => {
-  (global as any).chrome.runtime.lastError = null;
+(global as Record<string, unknown>).resetSendMessageError = () => {
+  const chrome = (global as any).chrome;
+  if (chrome?.runtime) {
+    chrome.runtime.lastError = null;
+  }
 };
 
 /**
  * Configure sendMessage mock to reject with a specific error (Promise-based)
  * Usage in tests: configureSendMessageReject('Extension context invalidated');
  */
-(global as any).configureSendMessageReject = (message: string) => {
-  (global as any).chrome.runtime.sendMessage = vi.fn(() => Promise.reject(new Error(message)));
+(global as Record<string, unknown>).configureSendMessageReject = (message: string) => {
+  const chrome = (global as any).chrome;
+  if (chrome?.runtime) {
+    chrome.runtime.sendMessage = vi.fn(() => Promise.reject(new Error(message)));
+  }
 };
 
 /**
  * Reset sendMessage mock to default behavior
  * Usage in tests: resetSendMessageMock();
  */
-(global as any).resetSendMessageMock = () => {
-  (global as any).chrome.runtime.sendMessage = chromeRuntimeMock.sendMessage;
+(global as Record<string, unknown>).resetSendMessageMock = () => {
+  const chrome = (global as any).chrome;
+  if (chrome?.runtime) {
+    chrome.runtime.sendMessage = chromeRuntimeMock.sendMessage;
+  }
 };
 
 // Global chrome object
-(global as any).chrome = {
+(global as Record<string, unknown>).chrome = {
   storage: {
     local: chromeStorageMock.local,
     session: chromeStorageMock.session,
     sync: {
-      get: vi.fn<Promise<Record<string, any>>, any[]>((keys?: any) => {
-        let result: Record<string, any> = {};
+      get: vi.fn<(keys?: unknown) => Promise<Record<string, unknown>>>((keys?: unknown) => {
+        let result: Record<string, unknown> = {};
         if (keys === null || keys === undefined) {
           result = { ...syncStorage };
         } else if (Array.isArray(keys)) {
-          keys.forEach((key) => {
+          keys.forEach((key: string) => {
             if (key in syncStorage) {
               result[key] = syncStorage[key];
             }
@@ -275,14 +303,14 @@ const chromeRuntimeMock = {
         }
         return Promise.resolve(result);
       }),
-      set: vi.fn<Promise<void>, [Record<string, any>]>((items) => {
+      set: vi.fn<(items: Record<string, unknown>) => Promise<void>>((items) => {
         Object.assign(syncStorage, items);
         return Promise.resolve();
       }),
     },
   },
   runtime: {
-    lastError: null as any,
+    lastError: null as { message: string } | null,
     sendMessage: chromeRuntimeMock.sendMessage,
     onMessage: chromeRuntimeMock.onMessage,
     onInstalled: {
@@ -298,20 +326,20 @@ const chromeRuntimeMock = {
     connectNative: vi.fn(),
   },
   tabs: {
-    query: vi.fn(),
-    sendMessage: vi.fn((_tabId, _message, callback) => {
+    query: vi.fn<(queryInfo: unknown) => Promise<unknown[]>>(() => Promise.resolve([])),
+    sendMessage: vi.fn<(tabId: number, message: unknown, callback?: (response?: unknown) => void) => void>((_tabId, _message, callback) => {
       if (callback && typeof callback === 'function') {
         callback();
       }
     }),
     onRemoved: {
-      addListener: vi.fn(),
+      addListener: vi.fn<(callback: (tabId: number, removeInfo: unknown) => void) => void>(),
     },
     onActivated: {
-      addListener: vi.fn(),
+      addListener: vi.fn<(callback: (activeInfo: unknown) => void) => void>(),
     },
     onUpdated: {
-      addListener: vi.fn(),
+      addListener: vi.fn<(callback: (tabId: number, changeInfo: unknown, tab: unknown) => void) => void>(),
     },
   },
   notifications: {
@@ -334,24 +362,24 @@ const chromeRuntimeMock = {
     closeDocument: vi.fn(() => Promise.resolve()),
   },
   permissions: {
-    contains: vi.fn<Promise<boolean>, any[]>(() => Promise.resolve(true)),
-    request: vi.fn<Promise<boolean>, any[]>(() => Promise.resolve(true)),
-    remove: vi.fn<Promise<boolean>, any[]>(() => Promise.resolve(true)),
+    contains: vi.fn<() => Promise<boolean>>(() => Promise.resolve(true)),
+    request: vi.fn<() => Promise<boolean>>(() => Promise.resolve(true)),
+    remove: vi.fn<() => Promise<boolean>>(() => Promise.resolve(true)),
   },
   alarms: {
-    create: vi.fn((name: string, alarmInfo: any, callback?: () => void) => {
+    create: vi.fn<(name: string, alarmInfo: unknown, callback?: () => void) => void>((_name, _alarmInfo, callback) => {
       if (callback) callback();
     }),
-    clear: vi.fn((name: string, callback?: (wasCleared: boolean) => void) => {
+    clear: vi.fn<(name: string, callback?: (wasCleared: boolean) => void) => void>((_name, callback) => {
       if (callback) callback(true);
     }),
-    clearAll: vi.fn((callback?: (wasCleared: boolean) => void) => {
+    clearAll: vi.fn<(callback?: (wasCleared: boolean) => void) => void>((callback) => {
       if (callback) callback(true);
     }),
-    get: vi.fn((name: string, callback?: (alarm: any) => void) => {
+    get: vi.fn<(name: string, callback?: (alarm: unknown) => void) => void>((_name, callback) => {
       if (callback) callback(undefined);
     }),
-    getAll: vi.fn((callback?: (alarms: any[]) => void) => {
+    getAll: vi.fn<(callback?: (alarms: unknown[]) => void) => void>((callback) => {
       if (callback) callback([]);
     }),
     onAlarm: {
@@ -366,21 +394,21 @@ const chromeRuntimeMock = {
     removeCSS: vi.fn(() => Promise.resolve()),
   },
   action: {
-    setBadgeText: vi.fn((details: any, callback?: () => void) => {
+    setBadgeText: vi.fn<(details: unknown, callback?: () => void) => void>((_details, callback) => {
       if (callback) callback();
     }),
-    setBadgeBackgroundColor: vi.fn((details: any, callback?: () => void) => {
+    setBadgeBackgroundColor: vi.fn<(details: unknown, callback?: () => void) => void>((_details, callback) => {
       if (callback) callback();
     }),
-    setTitle: vi.fn((details: any, callback?: () => void) => {
+    setTitle: vi.fn<(details: unknown, callback?: () => void) => void>((_details, callback) => {
       if (callback) callback();
     }),
-    setIcon: vi.fn((details: any, callback?: () => void) => {
+    setIcon: vi.fn<(details: unknown, callback?: () => void) => void>((_details, callback) => {
       if (callback) callback();
     }),
   },
   i18n: {
-    getMessage: vi.fn((key: string, substitutions?: Record<string, string>) => {
+    getMessage: vi.fn<(key: string, substitutions?: Record<string, string>) => string>((key, substitutions) => {
       const messages: Record<string, string> = {
         loading: 'Loading...',
         processing: 'Processing...',
@@ -595,10 +623,11 @@ const chromeRuntimeMock = {
 beforeEach(() => {
   vi.clearAllMocks();
   // Reset Chrome API state
-  if ((global as any).chrome && (global as any).chrome.runtime) {
-    (global as any).chrome.runtime.lastError = null;
+  const chrome = (global as Record<string, any>).chrome;
+  if (chrome?.runtime) {
+    chrome.runtime.lastError = null;
     // Reset sendMessage mock to default
-    (global as any).chrome.runtime.sendMessage = chromeRuntimeMock.sendMessage;
+    chrome.runtime.sendMessage = chromeRuntimeMock.sendMessage;
   }
   // Clear storage
   Object.keys(localStorage).forEach((key) => delete localStorage[key]);
@@ -658,9 +687,10 @@ const _mockCanvasRenderingContext2D = {
 
 // Only mock canvas in jsdom environment (HTMLCanvasElement is undefined in node)
 if (typeof HTMLCanvasElement !== 'undefined') {
-  HTMLCanvasElement.prototype.getContext = function (_contextId: string): CanvasRenderingContext2D | null {
-    return _mockCanvasRenderingContext2D;
-  };
+  HTMLCanvasElement.prototype.getContext = (function (this: HTMLCanvasElement, contextId: string): unknown {
+    if (contextId === '2d') return _mockCanvasRenderingContext2D;
+    return null;
+  } as any); // Overload matching for getContext is complex in mocks
 }
 
 // ============================================================================
@@ -682,8 +712,8 @@ if (typeof global.matchMedia === 'undefined') {
 }
 
 // Global alert and confirm mocks
-global.alert = vi.fn(() => { });
-global.confirm = vi.fn(() => false); // Default to cancel
+global.alert = vi.fn<(_message?: unknown) => void>(() => { });
+global.confirm = vi.fn<(_message?: string) => boolean>(() => false); // Default to cancel
 
 // ============================================================================
 // Browser API Mock Alias
@@ -692,6 +722,6 @@ global.confirm = vi.fn(() => false); // Default to cancel
 // Use a getter to ensure 'browser' always reflects the current value of 'chrome'
 // even if a test reassigns 'global.chrome'.
 Object.defineProperty(global, 'browser', {
-  get: () => (global as any).chrome,
+  get: () => (global as Record<string, unknown>).chrome,
   configurable: true,
 });
